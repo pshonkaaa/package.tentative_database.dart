@@ -1,0 +1,37 @@
+name: tentative_database
+description:
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: '>=2.17.6 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  sqflite: any
+    
+  true_core:
+    git:
+      url: https://github.com/TrueCollaboration/true_core.dart.git
+  logger_ex_common:
+    git:
+      url: https://github.com/TrueCollaboration/logger_ex_common.dart.git
+  logger_ex:
+    git:
+      url: https://github.com/TrueCollaboration/logger_ex.dart.git
+
+  ientity:
+    git:
+      url: https://github.com/TrueCollaboration/ientity.dart.git
+  itable:
+    git:
+      url: https://github.com/TrueCollaboration/itable.dart.git
+  itable_ex:
+    git:
+      url: https://github.com/TrueCollaboration/itable_ex.dart.git
+
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.16.0
