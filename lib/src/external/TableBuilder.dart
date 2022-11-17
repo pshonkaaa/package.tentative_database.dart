@@ -1,48 +1,40 @@
 import 'package:ientity/library.dart';
 
-import 'TentativeDatabase.dart';
-
-class TableBuilder {
+class TableBuilder<PARAM> {
   final String name;
-  final List<_TableBuilderValue> keys = [];
+  final List<ColumnInfo<PARAM>> keys = [];
 
 
   TableBuilder({
     required this.name,
-    ColumnInfo primaryKey = TentativeDatabase.DEFAULT_TABLE_PRIMARY_KEY,
+    required ColumnInfo<PARAM> primaryKey,
   }) {
-    if(primaryKey.name.isNotEmpty)
-      keys.add(_TableBuilderValue(primaryKey.name, primaryKey.type.name + " PRIMARY KEY"));
+    keys.add(primaryKey);
   }
   
-  TableBuilder insert(String name, ColumnType type) {
-    if(keys.where((e) => e.key == name).isNotEmpty)
+  TableBuilder insert(ColumnInfo<PARAM> column) {
+    if(keys.where((e) => e.name == column.name).isNotEmpty)
       return this;
-    keys.add(_TableBuilderValue(name, type.name));
+    keys.add(column);
     return this;
   }
 
-  TableBuilder insertAll(List<ColumnInfo> columns) {
-    for(final column in columns) insert(column.name, column.type);
+  TableBuilder insertAll(List<ColumnInfo<PARAM>> columns) {
+    for(final column in columns) insert(column);
     return this;
   }
 
   String toRawSql() {
     final sb = new StringBuffer();
     for(final o in keys) {
-      sb.write("${o.key} ${o.value},");
+      sb.write("${o.name} ${o.type.name}");
+      if(o.primaryKey)
+        sb.write(" PRIMARY KEY");
+      sb.write(",");
     }
 
     var data = sb.toString();
     data = data.substring(0, data.length - 1); // удаляем последнюю запятую
     return "CREATE TABLE $name ($data)";
   }
-}
-
-
-
-class _TableBuilderValue {
-  final String key;
-  final String value;
-  const _TableBuilderValue(this.key, this.value);
 }

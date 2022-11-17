@@ -61,13 +61,13 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     final List<T> toError = [];
 
     for(final entity in entities) {
-      if(entity.stored)
+      if(entity.getOptions().stored)
         continue;
-      if(entity.state == EEntityState.QUEUE_DELETE) {
+      if(entity.getOptions().state == EEntityState.QUEUE_DELETE) {
         toError.add(entity);
         continue;
       } toAdd.add(entity);
-      entity.state += EEntityState.STORED;
+      entity.getOptions().state += EEntityState.STORED;
     } dst.addAll(toAdd);
 
     _debugProfiler(profiler..stop());
@@ -82,13 +82,13 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     final List<T> toError = [];
 
     for(final entity in entities) {
-      if(entity.stored || entity.state == EEntityState.QUEUE_INSERT)
+      if(entity.getOptions().stored || entity.getOptions().state == EEntityState.QUEUE_INSERT)
         continue;
-      if(entity.state == EEntityState.QUEUE_DELETE) {
+      if(entity.getOptions().state == EEntityState.QUEUE_DELETE) {
         toError.add(entity);
         continue;
       } toAdd.add(entity);
-      entity.state += EEntityState.QUEUE_INSERT;
+      entity.getOptions().state += EEntityState.QUEUE_INSERT;
     } dst.addAll(toAdd);
 
     _debugProfiler(profiler..stop());
@@ -103,14 +103,14 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     final List<T> toError = [];
 
     for(final entity in entities) {
-      if(entity.stored || entity.state == EEntityState.QUEUE_UPDATE
-        || (entity.state == EEntityState.QUEUE_INSERT && entity.state != EEntityState.PROCESSING))
+      if(entity.getOptions().stored || entity.getOptions().state == EEntityState.QUEUE_UPDATE
+        || (entity.getOptions().state == EEntityState.QUEUE_INSERT && entity.getOptions().state != EEntityState.PROCESSING))
         continue;
-      if(entity.state == EEntityState.QUEUE_DELETE) {
+      if(entity.getOptions().state == EEntityState.QUEUE_DELETE) {
         toError.add(entity);
         continue;
       } toAdd.add(entity);
-      entity.state += EEntityState.QUEUE_UPDATE;
+      entity.getOptions().state += EEntityState.QUEUE_UPDATE;
     } dst.addAll(toAdd);
 
     _debugProfiler(profiler..stop());
@@ -127,26 +127,26 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     final List<T> toError = [];
 
     for(final entity in entities) {
-      if(entity.state == EEntityState.QUEUE_DELETE)
+      if(entity.getOptions().state == EEntityState.QUEUE_DELETE)
         continue;
-      if(entity.stored) {
+      if(entity.getOptions().stored) {
         toError.add(entity);
         continue;
-      } if(entity.state == EEntityState.QUEUE_INSERT || entity.state == EEntityState.QUEUE_UPDATE) {
+      } if(entity.getOptions().state == EEntityState.QUEUE_INSERT || entity.getOptions().state == EEntityState.QUEUE_UPDATE) {
         toRemove.add(entity);
       } toAdd.add(entity);
-      entity.state += EEntityState.QUEUE_DELETE;
+      entity.getOptions().state += EEntityState.QUEUE_DELETE;
     } dst.addAll(toAdd);
 
     for(final entity in toRemove) {
-      if(entity.state == EEntityState.QUEUE_INSERT) {
+      if(entity.getOptions().state == EEntityState.QUEUE_INSERT) {
         queueInsert.remove(e);
-        entity.state -= EEntityState.QUEUE_INSERT;
+        entity.getOptions().state -= EEntityState.QUEUE_INSERT;
       }
 
-      if(entity.state == EEntityState.QUEUE_UPDATE) {
+      if(entity.getOptions().state == EEntityState.QUEUE_UPDATE) {
         queueUpdate.remove(e);
-        entity.state -= EEntityState.QUEUE_UPDATE;
+        entity.getOptions().state -= EEntityState.QUEUE_UPDATE;
       }
     }
 
@@ -157,11 +157,11 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
   @override
   void removeFromStorage(List<T> entities) {
     final Profiler profiler = new Profiler("$TAG; removeFromStorage")..start();
-    final List<T> toRemove = entities.where((e) => e.stored).toList();
+    final List<T> toRemove = entities.where((e) => e.getOptions().stored).toList();
     storage.removeWhere((e) => toRemove.contains(e));
     
     for(final entity in toRemove)
-      entity.state -= EEntityState.STORED;
+      entity.getOptions().state -= EEntityState.STORED;
     _debugProfiler(profiler..stop());
   }
 
@@ -172,7 +172,7 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     storage.clear();
     
     for(final entity in list) {
-      entity.state -= EEntityState.STORED;
+      entity.getOptions().state -= EEntityState.STORED;
       entity.dispose();
     }
     _debugProfiler(profiler..stop());
@@ -247,7 +247,7 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     int id = lastId - (entities.length - 1);
     for(int n = 0; n < entities.length; n++, id++) {
       final entity = entities[n];
-      entity.params.pid = id;
+      entity.id = id;
       entity.setLoaded(true);
       entity.setEdited(false);
     } result.pushed.addAll(entities);
@@ -313,13 +313,13 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
 
     for(final row in rawResult.output) {
       final int rowId = row[primaryKey.name]! as int;
-      var entity = isExistInStorage((e) => e.params.pid != 0 && e.params.pid == rowId);
+      var entity = isExistInStorage((e) => e.id != 0 && e.id == rowId);
       if(entity != null) {
         result.stored.add(entityConverter(entity));
         continue;
       }
 
-      entity = queueDelete.tryFirstWhere((e) => e.params.pid == rowId);
+      entity = queueDelete.tryFirstWhere((e) => e.id == rowId);
       if(entity != null) {
         continue;
       }
@@ -401,13 +401,13 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     // final debugProfiler = new Profiler("parsing")..start();
     for(final row in rawResult.output) {
       final int rowId = row[primaryKey.name]! as int;
-      var entity = isExistInStorage((e) => e.params.pid != 0 && e.params.pid == rowId);
+      var entity = isExistInStorage((e) => e.id != 0 && e.id == rowId);
       if(entity != null) {
         result.stored.add(entity);
         continue;
       }
 
-      entity = queueDelete.tryFirstWhere((e) => e.params.pid == rowId);
+      entity = queueDelete.tryFirstWhere((e) => e.id == rowId);
       if(entity != null) {
         continue;
       }
@@ -474,7 +474,7 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
 
       for(final row in rawResult.output) {
         final int rowId = row[primaryKey.name]! as int;
-        var entity = queueDelete.tryFirstWhere((e) => e.params.pid == rowId);
+        var entity = queueDelete.tryFirstWhere((e) => e.id == rowId);
         if(entity != null) {
           continue;
         }
@@ -663,9 +663,9 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     queueDelete.clear();
 
     for(final entity in storage) {
-      if(!entity.loaded)
+      if(!entity.getOptions().loaded)
         toInsert.add(entity);
-      else if(entity.loaded && entity.edited)
+      else if(entity.getOptions().loaded && entity.getOptions().edited)
         toUpdate.add(entity);
     }
 
@@ -680,11 +680,11 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     //   //   end += TentativeDatabase.MAX_INSERTS_PER_REQUEST;
 
     for(final entity in toInsert)
-      entity.state += EEntityState.PROCESSING;
+      entity.getOptions().state += EEntityState.PROCESSING;
     for(final entity in queueUpdate)
-      entity.state += EEntityState.PROCESSING;
+      entity.getOptions().state += EEntityState.PROCESSING;
     for(final entity in queueDelete)
-      entity.state += EEntityState.PROCESSING;
+      entity.getOptions().state += EEntityState.PROCESSING;
     
     _debugProfiler(profiler..stop());
 
@@ -719,9 +719,9 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
         int id = lastId - (entities.length - 1);
         for(int n = 0; n < entities.length; n++, id++) {
           final entity = entities[n];
-          entity.state -= EEntityState.QUEUE_INSERT;
-          entity.state -= EEntityState.PROCESSING;
-          entity.params.pid = id;
+          entity.getOptions().state -= EEntityState.QUEUE_INSERT;
+          entity.getOptions().state -= EEntityState.PROCESSING;
+          entity.id = id;
           entity.setLoaded(true);
           entity.setEdited(false);
         }
@@ -759,8 +759,8 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
         int id = lastId - (entities.length - 1);
         for(int n = 0; n < entities.length; n++, id++) {
           final entity = entities[n];
-          entity.state -= EEntityState.QUEUE_UPDATE;
-          entity.state -= EEntityState.PROCESSING;
+          entity.getOptions().state -= EEntityState.QUEUE_UPDATE;
+          entity.getOptions().state -= EEntityState.PROCESSING;
           entity.setLoaded(true);
           entity.setEdited(false);
         }
@@ -811,8 +811,8 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
 
     //   lastId = rawResult.output;
 
-    //   // entity.state -= EEntityState.QUEUE_UPDATE;
-    //   // entity.state -= EEntityState.PROCESSING;
+    //   // entity.getOptions().state -= EEntityState.QUEUE_UPDATE;
+    //   // entity.getOptions().state -= EEntityState.PROCESSING;
     //   // entity.setEdited(false);
     //   // result.updated.add(entity);
     // }
@@ -834,8 +834,8 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
 
     //   lastId = rawResult.output;
 
-    //   entity.state -= EEntityState.QUEUE_UPDATE;
-    //   entity.state -= EEntityState.PROCESSING;
+    //   entity.getOptions().state -= EEntityState.QUEUE_UPDATE;
+    //   entity.getOptions().state -= EEntityState.PROCESSING;
     //   entity.setEdited(false);
     //   result.updated.add(entity);
     // }
@@ -869,9 +869,9 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
         int id = lastId - (entities.length - 1);
         for(int n = 0; n < entities.length; n++, id++) {
           final entity = entities[n];
-          entity.state -= EEntityState.QUEUE_DELETE;
-          entity.state -= EEntityState.PROCESSING;
-          entity.params.pid = 0;
+          entity.getOptions().state -= EEntityState.QUEUE_DELETE;
+          entity.getOptions().state -= EEntityState.PROCESSING;
+          entity.id = 0;
           entity.setLoaded(false);
           entity.setEdited(false);
         }

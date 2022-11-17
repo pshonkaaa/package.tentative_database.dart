@@ -9,32 +9,20 @@ enum QSettingEntityParam {
   value,
 }
 
-class QSettingEntityParams extends IEntityParams<QSettingEntityParam> {
-  int? id;
-  String? name;
-  Object? value;
-
-  @override
-  int get pid => id ?? 0;
-  
-  @override
-  set pid(int v) => id = v;
-}
-
 class QSettingEntity extends IEntity<QSettingEntityParam> {
   static const String TAG = "QSettingEntity";
-
-  @override
-  final QSettingEntityParams params = new QSettingEntityParams();
+  late int id;
+  late String name;
+  Object? value;
   
   QSettingEntity.create() : super.create() {
     setEdited(true, changed: QSettingEntityParam.values);
   }
 
   QSettingEntity.fromTable(JsonObjectEx json) : super.fromTable(json) {
-    params.id             = json.getInteger(SettingsTable.COLUMN_ID.name);
-    params.name           = json.getString(SettingsTable.COLUMN_NAME.name);
-    params.value          = json.getDynamic(SettingsTable.COLUMN_VALUE.name);
+    id      = json.getInteger(SettingsTable.COLUMN_ID.name)!;
+    name    = json.getString(SettingsTable.COLUMN_NAME.name)!;
+    value   = json.getDynamic(SettingsTable.COLUMN_VALUE.name);
   }
   
   @override
@@ -121,16 +109,15 @@ class QSettingEntity extends IEntity<QSettingEntityParam> {
     List<QSettingEntityParam> include = const [],
     List<QSettingEntityParam> exclude = const [],
   }) {
-    final list = IEntity.makeColumnsFromParamsList(SettingsTable.COLUMNS_ALL, [...include, ...changedParams], exclude);
-
-    list.remove(SettingsTable.COLUMN_ID);
+    final list = IEntity.makeColumnsFromParamsList(SettingsTable.COLUMNS_ALL, [...include, ...getOptions().changedParams], exclude);
+    
     final map = {
       if(requestType != ERequestType.insert)
-        SettingsTable.COLUMN_ID:          params.id,
+        SettingsTable.COLUMN_ID:          id,
       if(list.remove(SettingsTable.COLUMN_NAME))
-        SettingsTable.COLUMN_NAME:        params.name,
+        SettingsTable.COLUMN_NAME:        name,
       if(list.remove(SettingsTable.COLUMN_VALUE))
-        SettingsTable.COLUMN_VALUE:       params.value,
+        SettingsTable.COLUMN_VALUE:       value,
     };
 
     // if(list.isNotEmpty)
