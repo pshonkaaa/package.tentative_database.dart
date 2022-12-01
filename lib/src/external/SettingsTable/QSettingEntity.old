@@ -3,20 +3,14 @@ import 'package:json_ex/library.dart';
 
 import 'SettingsTable.dart';
 
-enum QSettingEntityParam {
-  id,
-  name,
-  value,
-}
-
-class QSettingEntity extends IEntity<QSettingEntityParam> {
+class QSettingEntity extends IEntity {
   static const String TAG = "QSettingEntity";
   late int id;
   late String name;
-  Object? value;
+  late String? value;
   
   QSettingEntity.create() : super.create() {
-    setEdited(true, changed: QSettingEntityParam.values);
+    setEdited(true, changed: SettingsTable.COLUMNS);
   }
 
   QSettingEntity.fromTable(JsonObjectEx json) : super.fromTable(json) {
@@ -38,9 +32,9 @@ class QSettingEntity extends IEntity<QSettingEntityParam> {
   @override
   bool isIdentical(
     covariant QSettingEntity entity, {
-      List<QSettingEntityParam> include = const [],
-      List<QSettingEntityParam> exclude = const [],
-      List<QSettingEntityParam>? changedParams,
+      List<EntityColumnInfo> include = const [],
+      List<EntityColumnInfo> exclude = const [],
+      List<ChangedColumn>? differences,
   }) {
     throw UnimplementedError();
   }
@@ -48,9 +42,9 @@ class QSettingEntity extends IEntity<QSettingEntityParam> {
   @override
   void copyTo(
     covariant QSettingEntity entity, {
-      List<QSettingEntityParam> include = const [],
-      List<QSettingEntityParam> exclude = const [],
-      List<QSettingEntityParam>? changedParams,
+      List<EntityColumnInfo> include = const [],
+      List<EntityColumnInfo> exclude = const [],
+      List<ChangedColumn>? differences,
   }) {
     throw UnimplementedError();
   }
@@ -58,9 +52,9 @@ class QSettingEntity extends IEntity<QSettingEntityParam> {
   @override
   bool copyChangesTo(
     covariant QSettingEntity entity, {
-      List<QSettingEntityParam> include = const [],
-      List<QSettingEntityParam> exclude = const [],
-      List<QSettingEntityParam>? changedParams,
+      List<EntityColumnInfo> include = const [],
+      List<EntityColumnInfo> exclude = const [],
+      List<ChangedColumn>? differences,
   }) {
     // final QSettingEntityParams src = this.params, dst = entity.params;
     // final List<DebugChangedParam<QSettingEntityParam>> debugChanges = [];
@@ -104,12 +98,12 @@ class QSettingEntity extends IEntity<QSettingEntityParam> {
   }
   
   @override
-  RowInfo<QSettingEntityParam> toTable({
+  RowInfo toTable({
     required ERequestType requestType,
-    List<QSettingEntityParam> include = const [],
-    List<QSettingEntityParam> exclude = const [],
+    List<EntityColumnInfo> include = const [],
+    List<EntityColumnInfo> exclude = const [],
   }) {
-    final list = IEntity.makeColumnsFromParamsList(SettingsTable.COLUMNS_ALL, [...include, ...getOptions().changedParams], exclude);
+    final list = IEntity.makeParamsList(SettingsTable.COLUMNS, [...include, ...getOptions().changedParams], exclude);
     
     final map = {
       if(requestType != ERequestType.insert)

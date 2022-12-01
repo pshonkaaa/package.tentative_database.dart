@@ -9,12 +9,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
-  sqflite: any
     
   true_core:
     git:
       url: https://github.com/TrueCollaboration/true_core.dart.git
+  json_ex:
+    git:
+      url: https://github.com/TrueCollaboration/json_ex.dart.git
   logger_ex_common:
     git:
       url: https://github.com/TrueCollaboration/logger_ex_common.dart.git
@@ -25,13 +26,24 @@ dependencies:
   ientity:
     git:
       url: https://github.com/TrueCollaboration/ientity.dart.git
-  itable:
-    git:
-      url: https://github.com/TrueCollaboration/itable.dart.git
+      ref: new
   itable_ex:
     git:
       url: https://github.com/TrueCollaboration/itable_ex.dart.git
+      ref: new
+
+  ientity_serializable:
+    git:
+      url: https://github.com/TrueCollaboration/ientity_serializable.dart.git
 
 dev_dependencies:
   lints: ^2.0.0
   test: ^1.16.0
+
+  build_runner: any
+
+dependency_overrides:
+  ientity_serializable:
+    path:  D:\.dev\projects\github\flutter\packages\ientity_serializable.dart
+  # itable_ex:
+  #   path:  D:\.dev\projects\github\flutter\packages\itable_ex.dart

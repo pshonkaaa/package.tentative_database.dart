@@ -15,15 +15,15 @@ import 'package:tentative_database/src/external/typedef.dart';
 import 'package:true_core/library.dart';
 
 /// TODO MAKE A FULL TESTING
-class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T, PARAM> {
+class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
   static const String TAG = "AdvancedTable";
   /// TODO SMART LIST
   @override
   final List<T> storage = [];
 
-  late final ITableEx<PARAM> table;
+  late final ITableEx table;
   RawTable get raw => table.raw;
-  ColumnInfo<PARAM> get primaryKey => table.primaryKey;
+  EntityColumnInfo get primaryKey => table.primaryKey;
 
   AdvancedTableImpl(this.table);
 
@@ -216,7 +216,7 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
   Future<TablePushResult<T>> push({
     required List<T> entities,
 
-    required List<ColumnInfo<PARAM>> columns,
+    required List<EntityColumnInfo> columns,
 
     Profiler? pInsert,
     LoggerContext? logger,
@@ -230,10 +230,12 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
       return result;
     }
 
+    columns = columns.toList()..remove(table.primaryKey);
+
     
     pInsert?.start();
     
-    final include = columns.map((e) => e.param).toList();
+    final include = columns.toList();
     final values = entities.map((e) => e.toTable(requestType: ERequestType.insert, include: include).toList(columns)).toList();
     final rawResult = await raw.insertAll(
       columns.map((e) => e.name).toList(),
@@ -277,12 +279,12 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
 
 
 
-  //TODO TYPIZING List<ColumnInfo<PARAM>>?
+  //TODO TYPIZING List<ColumnInfo>?
   
   @override
   Future<TableLoadResult<TCUSTOM, ID>> loadCustomData<TCUSTOM, ID>({
     int limit = 0,
-    List<ColumnInfo<PARAM>>? columns,
+    List<EntityColumnInfo>? columns,
     String? where,
     List<Object?>? whereArgs,
 
@@ -336,7 +338,7 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     int limit = 0,
     List<String>? columns,
 
-    required ColumnInfo<PARAM> columnId,
+    required EntityColumnInfo columnId,
 
     required EntityByIdPredicate<T, ID> predicate,
     required MapToEntityConverter<T> converter,
@@ -429,7 +431,7 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     List<String>? columns,
 
     required List<ID> ids,
-    required ColumnInfo<PARAM> columnId,
+    required EntityColumnInfo columnId,
 
     required EntityByIdPredicate<T, ID> predicate,
     required MapToEntityConverter<T> converter,
@@ -681,9 +683,9 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
 
     for(final entity in toInsert)
       entity.getOptions().state += EEntityState.PROCESSING;
-    for(final entity in queueUpdate)
+    for(final entity in toUpdate)
       entity.getOptions().state += EEntityState.PROCESSING;
-    for(final entity in queueDelete)
+    for(final entity in toDelete)
       entity.getOptions().state += EEntityState.PROCESSING;
     
     _debugProfiler(profiler..stop());
@@ -698,9 +700,9 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
     {
       final list = toInsert;
       int end = 0;
-      final columnInfos = table.columns;
+      final columnInfos = table.columns.toList()..remove(table.primaryKey);
       final columns = columnInfos.map((e) => e.name).toList();
-      final include = columnInfos.map((e) => e.param).toList();
+      final include = columnInfos.toList();
       while(list.isNotEmpty) {
         final entities = list.getRange(0, end = min(list.length, TentativeDatabase.MAX_INSERTS_PER_REQUEST)).toList();
 
@@ -740,7 +742,7 @@ class AdvancedTableImpl<T extends IEntity<PARAM>, PARAM> extends AdvancedTable<T
       int end = 0;
       final columnInfos = table.columns;
       final columns = columnInfos.map((e) => e.name).toList();
-      final include = columnInfos.map((e) => e.param).toList();
+      final include = columnInfos.toList();
       while(list.isNotEmpty) {
         final entities = list.getRange(0, end = min(list.length, TentativeDatabase.MAX_UPDATES_PER_REQUEST)).toList();
 

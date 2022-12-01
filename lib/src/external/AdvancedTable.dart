@@ -10,7 +10,7 @@ import 'results/TablePushResult.dart';
 import 'results/TableRemoveResult.dart';
 import 'typedef.dart';
 
-abstract class AdvancedTable<T extends IEntity<PARAM>, PARAM> {
+abstract class AdvancedTable<T extends IEntity> {
   static AdvancedTable create(
     ITableEx table,
   ) {
@@ -67,7 +67,7 @@ abstract class AdvancedTable<T extends IEntity<PARAM>, PARAM> {
   Future<TablePushResult<T>> push({
     required List<T> entities,
 
-    required List<ColumnInfo<PARAM>> columns,
+    required List<EntityColumnInfo> columns,
 
     Profiler? pInsert,
     LoggerContext? logger,
@@ -77,7 +77,7 @@ abstract class AdvancedTable<T extends IEntity<PARAM>, PARAM> {
   /// Must contains PRIMARY_KEY
   Future<TableLoadResult<TCUSTOM, ID>> loadCustomData<TCUSTOM, ID>({
     int limit = 0,
-    List<ColumnInfo<PARAM>>? columns,
+    List<EntityColumnInfo>? columns,
     String? where,
     List<Object?>? whereArgs,
 
@@ -93,7 +93,7 @@ abstract class AdvancedTable<T extends IEntity<PARAM>, PARAM> {
     int limit = 0,
     List<String>? columns,
 
-    required ColumnInfo<PARAM> columnId,
+    required EntityColumnInfo columnId,
 
     required EntityByIdPredicate<T, ID> predicate,
     required MapToEntityConverter<T> converter,
@@ -119,7 +119,7 @@ abstract class AdvancedTable<T extends IEntity<PARAM>, PARAM> {
     List<String>? columns,
 
     required List<ID> ids,
-    required ColumnInfo<PARAM> columnId,
+    required EntityColumnInfo columnId,
 
     required EntityByIdPredicate<T, ID> predicate,
     required MapToEntityConverter<T> converter,

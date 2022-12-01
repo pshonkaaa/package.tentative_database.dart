@@ -1,5 +1,5 @@
+import 'package:itable_ex/library.dart';
 import 'package:logger_ex/library.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
 
 class SettingsTableImpl extends SettingsTable {
@@ -9,11 +9,11 @@ class SettingsTableImpl extends SettingsTable {
   SettingsTableImpl({
     required String name,
     required this.cacheValues,
-    required Database db,
+    required DatabaseExecutor database,
   }) : super(
     name: name,
-    columns: SettingsTable.COLUMNS_ALL,
-    db: db,
+    columns: SettingsTable.COLUMNS,
+    database: database,
   );  
 
   @override
@@ -27,7 +27,9 @@ class SettingsTableImpl extends SettingsTable {
       limit: 1,
     );
     final list = rawResult.output;
-    return cache[name] = list.isEmpty ? null : list[0][SettingsTable.COLUMN_VALUE.name] as String;
+    if(list.isEmpty)
+      return null;
+    return cache[name] = list[0][SettingsTable.COLUMN_VALUE.name] as String;
   }
   
   @override
@@ -84,14 +86,16 @@ class SettingsTableImpl extends SettingsTable {
         },
       );
       updated = rawResult.output;
-    } if(updated > 1) {
-      final rawResult = await raw.delete(
-        where: "${SettingsTable.COLUMN_ID} NOT IN (SELECT MIN(${SettingsTable.COLUMN_ID}) FROM ${raw.name})",
-        logger: logger,
-      );
-      final deleted = rawResult.output;
-      updated -= deleted;
     }
+    
+    // if(updated > 1) {
+    //   final rawResult = await raw.delete(
+    //     where: "${SettingsTable.COLUMN_ID} NOT IN (SELECT MIN(${SettingsTable.COLUMN_ID}) FROM ${raw.name})",
+    //     logger: logger,
+    //   );
+    //   final deleted = rawResult.output;
+    //   updated -= deleted;
+    // }
 
     if(updated != 0) {
       cache[name] = value;

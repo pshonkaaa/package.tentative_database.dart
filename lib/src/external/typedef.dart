@@ -1,12 +1,6 @@
 import 'package:ientity/library.dart';
 import 'package:json_ex/library.dart';
 
-typedef OnConfigureFunction = Future<void> Function();
-typedef OnOpenFunction = Future<void> Function();
-typedef OnCreateFunction = Future<void> Function(int version);
-typedef OnUpgradeFunction = Future<void> Function(int oldVersion, int newVersion);
-typedef OnDowngradeFunction = Future<void> Function(int oldVersion, int newVersion);
-
 @Deprecated("")
 typedef ModelConstructorFunction<T extends IEntity> = T Function(JsonObjectEx json);
 

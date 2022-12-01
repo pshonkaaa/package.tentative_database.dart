@@ -1,13 +1,12 @@
 import 'package:ientity/library.dart';
+import 'package:itable_ex/library.dart';
 import 'package:logger_ex/app/core/logger/Logger.dart';
 import 'package:logger_ex/library.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:tentative_database/src/external/DatabaseListeners.dart';
 import 'package:tentative_database/src/external/ITentativeTable.dart';
 import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
 import 'package:tentative_database/src/external/TableBuilder.dart';
 import 'package:tentative_database/src/external/TentativeDatabase.dart';
-import 'package:tentative_database/src/external/typedef.dart';
 
 import 'DummySettingsTable.dart';
 import 'SettingsTableImpl.dart';
@@ -15,6 +14,8 @@ import 'SettingsTableImpl.dart';
 class TentativeDatabaseImpl implements TentativeDatabase {
   static const String SUFFIX_SETTING_TABLE = r"$$settings";
   
+  @override
+  final DatabaseMediator executor;
   final OnConfigureFunction onConfigure;
   final OnOpenFunction onOpen;
   final OnCreateFunction onCreate;
@@ -22,6 +23,7 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   final OnDowngradeFunction onDowngrade;
 
   TentativeDatabaseImpl({
+    required this.executor,
     required this.onConfigure,
     required this.onOpen,
     required this.onCreate,
@@ -30,59 +32,58 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   });
 
   @override
+  bool get connected => executor.connected;
+  
+  @override
   LoggerContext logger = Logger.instance;
 
   @override
   final DatabaseListeners listeners = DatabaseListeners();
 
   @override
-  bool get closed => raw.isOpen;
-
-  @override
-  late Database raw;
-
-  @override
-  Future<void> init(String dbPath, int dbVersion) async {
-    raw = await openDatabase(dbPath,
-      version: dbVersion,
-      onConfigure: (db) async {
-        raw = db;
+  Future<bool> connect({
+    required Map<String, dynamic> connectionParams,
+  }) async {
+    return await executor.connect(
+      connectionParams: connectionParams,
+      onConfigure: () async {
         await onConfigure();
       },
-      onOpen: (db) async {
+      onOpen: () async {
         await onOpen();
         listeners.onOpen.notifyAll();
       },
-      onCreate: (db, version) async {
+      onCreate: (version) async {
         await onCreate(version);
       },
-      onUpgrade: (db, oldVersion, newVersion) async {
+      onUpgrade: (oldVersion, newVersion) async {
         await onUpgrade(oldVersion, newVersion);
       },
-      onDowngrade: (db, oldVersion, newVersion) async {
+      onDowngrade: (oldVersion, newVersion) async {
         await onDowngrade(oldVersion, newVersion);
       },
     );
   }
 
   @override
-  Future<void> close() async {
+  Future<bool> close() async {
     listeners.onClose.notifyAll();
+    return await executor.close();
   }
 
 
   @override
-  Future<void> execute(String sql) => raw.execute(sql);
+  Future<void> execute(String sql) => executor.execute(sql);
 
   @override
-  Future<T> createOrLoadTable<T extends ITentativeTable<E, P>, E extends IEntity<P>, P>(
+  Future<T> createOrLoadTable<T extends ITentativeTable<IEntity>>(
     TableBuilder builder,
     T table, {
       bool createSettingsTable = true,
       bool cacheSettings = true,
   }) async {
     if(!(await isExistTable(builder.name)))
-      await raw.execute(builder.toRawSql());
+      await executor.execute(builder.toRawSql());
       
     return (await loadTable(
       builder.name,
@@ -104,13 +105,13 @@ class TentativeDatabaseImpl implements TentativeDatabase {
         SettingsTable.COLUMN_NAME,
         SettingsTable.COLUMN_VALUE,
       ]);
-      await raw.execute(builder.toRawSql());
+      await executor.execute(builder.toRawSql());
     }
 
     final table = SettingsTableImpl(
       name: name,
       cacheValues: cacheValues,
-      db: raw,
+      database: executor,
     );
     
     await table.initState();
@@ -121,25 +122,21 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   Future<List<String>> getTables({
     bool excludeInternalTables = true,
   }) async {
-    final List<String> tables = [];
-    final rows = await raw.rawQuery("SELECT name FROM sqlite_master WHERE type='table';");
-    for(final row in rows) {
-      final name = row["name"] as String;
-      if(excludeInternalTables && isSettingsTable(name)) {
-        continue;
-      } tables.add(name);
-    } return tables;
+    final tables = await executor.getTables();
+    if(excludeInternalTables)
+      tables.retainWhere((e) => !isSettingsTable(e));
+    return tables;
   }
   
   @override
-  Future<T?> loadTable<T extends ITentativeTable<IEntity<P>, P>, P>(
+  Future<T?> loadTable<T extends ITentativeTable<IEntity>>(
     String name,
     T table, {
       bool createSettingsTable = true,
       bool cacheSettings = true,
   }) async {
-    final data = await raw.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='" + name + "';");
-    if(data.isEmpty)
+    final tables = await executor.getTables();
+    if(!tables.contains(name))
       return null;
 
     final SettingsTable settingsTable;
@@ -151,7 +148,7 @@ class TentativeDatabaseImpl implements TentativeDatabase {
     } else {
       settingsTable = DummySettingsTable(
         name: name,
-        db: raw,
+        database: executor,
       );
     } TentativeTableHelper.setSettingsTable(table, settingsTable);
     
@@ -163,8 +160,8 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   Future<bool> isExistTable(
     String name,
   ) async {
-    var data = await raw.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='" + name + "';");
-    return data.isNotEmpty;
+    final tables = await executor.getTables();
+    return tables.contains(name);
   }
   
   @override
@@ -172,9 +169,9 @@ class TentativeDatabaseImpl implements TentativeDatabase {
     String name, {
       bool dropSettingsTable = true,
   }) async {
-    await raw.execute("DROP TABLE IF EXISTS $name");
+    await executor.execute("DROP TABLE IF EXISTS $name");
     if(dropSettingsTable) {
-      await raw.execute("DROP TABLE IF EXISTS ${generateSettingsTableName(name)}");
+      await executor.execute("DROP TABLE IF EXISTS ${generateSettingsTableName(name)}");
     }
   }
 

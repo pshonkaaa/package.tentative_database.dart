@@ -1,15 +1,15 @@
+import 'package:itable_ex/library.dart';
 import 'package:logger_ex/library.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
 
 class DummySettingsTable extends SettingsTable {
   DummySettingsTable({
     required String name,
-    required Database db,
+    required DatabaseExecutor database,
   }) : super(
     name: name,
     columns: [],
-    db: db,
+    database: database,
   );
 
   @override

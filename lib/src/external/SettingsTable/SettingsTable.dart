@@ -1,18 +1,20 @@
 import 'package:ientity/library.dart';
+import 'package:ientity_serializable/library.dart';
 import 'package:itable_ex/library.dart';
+import 'package:json_ex/library.dart';
 import 'package:logger_ex/library.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:tentative_database/src/external/SqlColumnTypes.dart';
+import 'package:tentative_database/src/external/SqliteColumnTypes.dart';
 
-import 'QSettingEntity.dart';
+part 'SettingsTable.g.dart';
 
-abstract class SettingsTable extends ITableEx<QSettingEntityParam> {
-  static const COLUMN_ID                = ColumnInfo(QSettingEntityParam.id, "id", SqlColumnTypes.integer, primaryKey: true);
-  static const COLUMN_NAME              = ColumnInfo(QSettingEntityParam.name, "name", SqlColumnTypes.text);
-  static const COLUMN_VALUE             = ColumnInfo(QSettingEntityParam.value, "value", SqlColumnTypes.text);
+@TableAnn(entityName: "QSettingEntity")
+abstract class SettingsTable extends ITableEx {
+  static const COLUMN_ID                = EntityColumnInfo<int>("id", SqliteColumnTypes.integer, isPrimaryKey: true);
+  static const COLUMN_NAME              = EntityColumnInfo<String>("name", SqliteColumnTypes.text);
+  static const COLUMN_VALUE             = EntityColumnInfo<String>("value", SqliteColumnTypes.text);
   
 
-  static const COLUMNS_ALL = [
+  static const COLUMNS = [
     COLUMN_ID,
     COLUMN_NAME,
     COLUMN_VALUE,
@@ -20,12 +22,12 @@ abstract class SettingsTable extends ITableEx<QSettingEntityParam> {
   
   SettingsTable({
     required String name,
-    required List<ColumnInfo<QSettingEntityParam>> columns,
-    required Database db,
+    required List<EntityColumnInfo> columns,
+    required DatabaseExecutor database,
   }) : super(
     name: name,
     columns: columns,
-    db: db,
+    database: database,
   );
 
   Future<String?> get(String name);
