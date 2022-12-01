@@ -1,5 +1,4 @@
 import 'package:ientity/library.dart';
-import 'package:ientity_serializable/library.dart';
 import 'package:itable_ex/library.dart';
 import 'package:json_ex/library.dart';
 import 'package:logger_ex/library.dart';
@@ -7,7 +6,7 @@ import 'package:tentative_database/src/external/SqliteColumnTypes.dart';
 
 part 'SettingsTable.g.dart';
 
-@TableAnn(entityName: "QSettingEntity")
+@AnTable(entityName: "QSettingEntity")
 abstract class SettingsTable extends ITableEx {
   static const COLUMN_ID                = EntityColumnInfo<int>("id", SqliteColumnTypes.integer, isPrimaryKey: true);
   static const COLUMN_NAME              = EntityColumnInfo<String>("name", SqliteColumnTypes.text);

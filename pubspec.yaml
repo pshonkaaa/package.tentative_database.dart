@@ -32,15 +32,15 @@ dependencies:
       url: https://github.com/TrueCollaboration/itable_ex.dart.git
       ref: new
 
-  ientity_serializable:
-    git:
-      url: https://github.com/TrueCollaboration/ientity_serializable.dart.git
-
 dev_dependencies:
   lints: ^2.0.0
   test: ^1.16.0
 
   build_runner: any
+
+  ientity_serializable:
+    git:
+      url: https://github.com/TrueCollaboration/ientity_serializable.dart.git
 
 dependency_overrides:
   ientity_serializable:
