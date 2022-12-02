@@ -1,6 +1,6 @@
 name: tentative_database
 description:
-version: 0.0.2
+version: 0.1.0
 publish_to: none
 
 environment:
@@ -26,11 +26,9 @@ dependencies:
   ientity:
     git:
       url: https://github.com/TrueCollaboration/ientity.dart.git
-      ref: new
   itable_ex:
     git:
       url: https://github.com/TrueCollaboration/itable_ex.dart.git
-      ref: new
 
 dev_dependencies:
   lints: ^2.0.0
@@ -38,12 +36,6 @@ dev_dependencies:
 
   build_runner: any
 
-  ientity_serializable:
+  ientity_generator:
     git:
-      url: https://github.com/TrueCollaboration/ientity_serializable.dart.git
-
-dependency_overrides:
-  ientity_serializable:
-    path:  D:\.dev\projects\github\flutter\packages\ientity_serializable.dart
-  # itable_ex:
-  #   path:  D:\.dev\projects\github\flutter\packages\itable_ex.dart
+      url: https://github.com/TrueCollaboration/ientity_generator.dart.git
