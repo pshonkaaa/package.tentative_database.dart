@@ -34,15 +34,15 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   @override
   bool get connected => executor.connected;
   
-  @override
-  LoggerContext logger = Logger.instance;
+  // @override
+  // LoggerContext logger = Logger.instance;
 
   @override
   final DatabaseListeners listeners = DatabaseListeners();
 
   @override
   Future<bool> connect({
-    required Map<String, dynamic> connectionParams,
+    required IConnectionParams connectionParams,
   }) async {
     return await executor.connect(
       connectionParams: connectionParams,

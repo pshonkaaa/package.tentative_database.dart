@@ -38,13 +38,13 @@ abstract class TentativeDatabase {
 
   bool get connected;
 
-  LoggerContext logger = Logger.instance;
+  // LoggerContext logger = Logger.instance;
 
   DatabaseListeners get listeners;
 
 
   Future<bool> connect({
-    required Map<String, dynamic> connectionParams,
+    required IConnectionParams connectionParams,
   });
 
   Future<void> close();
