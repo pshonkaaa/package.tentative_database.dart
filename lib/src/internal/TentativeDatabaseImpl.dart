@@ -1,14 +1,10 @@
 import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
-import 'package:logger_ex/app/core/logger/Logger.dart';
-import 'package:logger_ex/library.dart';
 import 'package:tentative_database/src/external/DatabaseListeners.dart';
-import 'package:tentative_database/src/external/ITentativeTable.dart';
+import 'package:tentative_database/src/external/TentativeTable.dart';
 import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
-import 'package:tentative_database/src/external/TableBuilder.dart';
 import 'package:tentative_database/src/external/TentativeDatabase.dart';
 
-import 'DummySettingsTable.dart';
 import 'SettingsTableImpl.dart';
 
 class TentativeDatabaseImpl implements TentativeDatabase {
@@ -76,43 +72,31 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   Future<void> execute(String sql) => executor.execute(sql);
 
   @override
-  Future<T> createOrLoadTable<T extends ITentativeTable<IEntity>>(
-    TableBuilder builder,
+  Future<T> createOrLoadTable<T extends TentativeTable<IEntity>>(
     T table, {
       bool createSettingsTable = true,
-      bool cacheSettings = true,
   }) async {
-    if(!(await isExistTable(builder.name)))
-      await executor.execute(builder.toRawSql());
+    if(!(await isExistTable(table.name)))
+      await executor.execute(table.toSql());
       
     return (await loadTable(
-      builder.name,
       table,
       createSettingsTable: createSettingsTable,
-      cacheSettings: cacheSettings,
     ))!;
   }
 
   @override
   Future<SettingsTable> createOrLoadSettingsTable(
-    String name, {
-      bool cacheValues = true,
-  }) async {
-    name = generateSettingsTableName(name);
-    if(!(await isExistTable(name))) {
-      final builder = TableBuilder(name: name, primaryKey: SettingsTable.COLUMN_ID)
-      ..insertAll([
-        SettingsTable.COLUMN_NAME,
-        SettingsTable.COLUMN_VALUE,
-      ]);
-      await executor.execute(builder.toRawSql());
-    }
-
+    String name
+  ) async {
     final table = SettingsTableImpl(
       name: name,
-      cacheValues: cacheValues,
       database: executor,
     );
+    if(!(await isExistTable(name))) {
+      await executor.execute(table.toSql());
+    }
+
     
     await table.initState();
     return table;
@@ -129,28 +113,27 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   }
   
   @override
-  Future<T?> loadTable<T extends ITentativeTable<IEntity>>(
-    String name,
+  Future<T?> loadTable<T extends TentativeTable<IEntity>>(
     T table, {
       bool createSettingsTable = true,
-      bool cacheSettings = true,
   }) async {
     final tables = await executor.getTables();
-    if(!tables.contains(name))
+    if(!tables.contains(table.name))
       return null;
 
-    final SettingsTable settingsTable;
+    final SettingsTable? settingsTable;
     if(createSettingsTable) {
       settingsTable = await createOrLoadSettingsTable(
-        name,
-        cacheValues: cacheSettings,
+        generateSettingsTableName(table.name),
       );
-    } else {
-      settingsTable = DummySettingsTable(
-        name: name,
-        database: executor,
-      );
-    } TentativeTableHelper.setSettingsTable(table, settingsTable);
+    } else settingsTable = null;
+    // else {
+    //   settingsTable = DummySettingsTable(
+    //     name: name,
+    //     database: executor,
+    //   );
+    // }
+    TentativeTableHelper.setSettingsTable(table, settingsTable);
     
     await table.initState();
     return table;

@@ -5,7 +5,7 @@ import 'ITableRequestResult.dart';
 
 class TablePushResult<T extends IEntity> extends ITableRequestResult<T> {
   final List<T> pushed = [];
-  final List<T> changed = [];
+  final List<T> stored = [];
   final List<T> notPushed = [];
 
   @override

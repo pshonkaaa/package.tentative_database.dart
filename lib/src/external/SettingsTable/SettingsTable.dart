@@ -29,17 +29,22 @@ abstract class SettingsTable extends ITableEx {
     database: database,
   );
 
-  Future<String?> get(String name);
+  Future<String?> get(
+    String name, {
+      bool useCache = true,
+  });
   
   Future<int> getInteger(
-    String name, [
+    String name, {
       int def = -1,
-  ]);
+      bool useCache = true,
+  });
 
   Future<bool> getBoolean(
-    String name, [
+    String name, {
       bool def = false,
-  ]);
+      bool useCache = true,
+  });
   
   Future<bool> set(
     String name,

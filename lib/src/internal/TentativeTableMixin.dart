@@ -2,42 +2,56 @@ import 'dart:developer';
 import 'dart:math';
 
 import 'package:ientity/library.dart';
-import 'package:itable_ex/library.dart';
-import 'package:logger_ex/app/core/logger/Logger.dart';
 import 'package:logger_ex/library.dart';
-import 'package:tentative_database/src/external/AdvancedTable.dart';
 import 'package:tentative_database/src/external/TentativeDatabase.dart';
-import 'package:tentative_database/src/external/results/AdvancedTableSaveResult.dart';
 import 'package:tentative_database/src/external/results/TableLoadResult.dart';
 import 'package:tentative_database/src/external/results/TablePushResult.dart';
 import 'package:tentative_database/src/external/results/TableRemoveResult.dart';
+import 'package:tentative_database/src/external/results/TableSaveResult.dart';
 import 'package:tentative_database/src/external/typedef.dart';
 import 'package:true_core/library.dart';
 
-/// TODO MAKE A FULL TESTING
-class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
-  static const String TAG = "AdvancedTable";
-  /// TODO SMART LIST
+import 'ITentativeTable.dart';
+
+mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
+  static const TAG = "TentativeTableMixin";
+
+  final List<T> queueInsert = [];
+  final List<T> queueUpdate = [];
+  final List<T> queueDelete = [];
+
+
+  final List<TableExecutorProxy> _proxies = [];
+  final Map<int, T> _storage = Map();
+
+
+
   @override
-  final List<T> storage = [];
+  Iterable<T> get storage => _storage.values;
 
-  late final ITableEx table;
-  RawTable get raw => table.raw;
-  EntityColumnInfo get primaryKey => table.primaryKey;
+  @override
+  void addProxy(TableExecutorProxy proxy) {
+    _proxies.add(proxy);
+  }
 
-  AdvancedTableImpl(this.table);
+  @override
+  void removeProxy(TableExecutorProxy proxy) {
+    _proxies.remove(proxy);
+  }
 
   @override
   Future<void> initState() async {
+    await super.initState();
   }
 
   @override
   Future<void> dispose() async {
+    await super.dispose();
   }
 
   @override
   void optimizeStorage() {
-    // final Profiler profiler = new Profiler("$TAG; optimizeStorage")..start();
+    // final Profiler profiler = Profiler("$TAG; optimizeStorage")..start();
     // final filtered = storage.toSet().toList();
     // storage.clear();
     // advanced.addToStorage(filtered);
@@ -55,8 +69,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
 
   @override
   void addToStorage(List<T> entities, [OnQueueModificationError? onError]) {
-    final Profiler profiler = new Profiler("$TAG; addToStorage")..start();
-    final List<T> dst = storage;
+    final Profiler profiler = Profiler("$TAG; addToStorage")..start();
     final List<T> toAdd = [];
     final List<T> toError = [];
 
@@ -68,7 +81,11 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
         continue;
       } toAdd.add(entity);
       entity.getOptions().state += EEntityState.STORED;
-    } dst.addAll(toAdd);
+    } 
+    
+    for(final entity in toAdd) {
+      _storage[entity.id] = entity;
+    }
 
     _debugProfiler(profiler..stop());
     _handleQueueResult(toError, onError);
@@ -76,7 +93,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
   
   @override
   void addToInsertQueue(List<T> entities, [OnQueueModificationError? onError]) {
-    final Profiler profiler = new Profiler("$TAG; addToInsertQueue")..start();
+    final Profiler profiler = Profiler("$TAG; addToInsertQueue")..start();
     final List<T> dst = queueInsert;
     final List<T> toAdd = [];
     final List<T> toError = [];
@@ -97,7 +114,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
 
   @override
   void addToUpdateQueue(List<T> entities, [OnQueueModificationError? onError]) {
-    final Profiler profiler = new Profiler("$TAG; addToUpdateQueue")..start();
+    final Profiler profiler = Profiler("$TAG; addToUpdateQueue")..start();
     final List<T> dst = queueUpdate;
     final List<T> toAdd = [];
     final List<T> toError = [];
@@ -117,10 +134,9 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     _handleQueueResult(toError, onError);
   }
 
-
   @override
   void addToRemoveQueue(List<T> entities, [OnQueueModificationError? onError]) {
-    final Profiler profiler = new Profiler("$TAG; addToRemoveQueue")..start();
+    final Profiler profiler = Profiler("$TAG; addToRemoveQueue")..start();
     final List<T> dst = queueDelete;
     final List<T> toAdd = [];
     final List<T> toRemove = [];
@@ -156,20 +172,21 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
 
   @override
   void removeFromStorage(List<T> entities) {
-    final Profiler profiler = new Profiler("$TAG; removeFromStorage")..start();
+    final Profiler profiler = Profiler("$TAG; removeFromStorage")..start();
     final List<T> toRemove = entities.where((e) => e.getOptions().stored).toList();
-    storage.removeWhere((e) => toRemove.contains(e));
     
-    for(final entity in toRemove)
+    for(final entity in toRemove) {
+      _storage.remove(e);
       entity.getOptions().state -= EEntityState.STORED;
+    }
     _debugProfiler(profiler..stop());
   }
 
   @override
   void disposeStorage() {
-    final Profiler profiler = new Profiler("$TAG; disposeStorage")..start();
-    final list = storage.toList();
-    storage.clear();
+    final Profiler profiler = Profiler("$TAG; disposeStorage")..start();
+    final list = _storage.values.toList();
+    _storage.clear();
     
     for(final entity in list) {
       entity.getOptions().state -= EEntityState.STORED;
@@ -184,7 +201,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
   void _handleQueueResult(List<T> entities, [OnQueueModificationError? onError]) {
     if(entities.isNotEmpty) {
       try {
-        throw new QueueModificationError(entities: entities);
+        throw QueueModificationError(entities: entities);
       } on QueueModificationError catch(e, s) {
         if(onError != null)
           onError(e, s);
@@ -194,10 +211,10 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
   }
 
   void _debugProfiler(Profiler profiler) {
-    const timeUnit = TimeUnits.MILLISECONDS;
-    final int executionTime = profiler.time(timeUnit);
-    if(executionTime > TentativeDatabase.MAX_EXECUTION_TIME_ADVANCED_TABLE)
-      Logger.instance.warn(TAG, "${profiler.name} was executing $executionTime in times $timeUnit");
+    // const timeUnit = TimeUnits.MILLISECONDS;
+    // final int executionTime = profiler.time(timeUnit);
+    // if(executionTime > TentativeDatabase.MAX_EXECUTION_TIME_ADVANCED_TABLE)
+      // Logger.instance.warn(TAG, "${profiler.name} was executing $executionTime in times $timeUnit");
   }
 
 
@@ -217,61 +234,63 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     required List<T> entities,
 
     required List<EntityColumnInfo> columns,
+    required EntityComparison<T> comparison,
 
+    Profiler? pSelect,
     Profiler? pInsert,
     LoggerContext? logger,
   }) async {
-    // entities = entities.toSet().toList();
-
-    final result = new TablePushResult<T>();
+    final result = TablePushResult<T>();
 
     if(entities.isEmpty) {
       result.prepareList();
       return result;
     }
 
-    columns = columns.toList()..remove(table.primaryKey);
+    // entities = entities.toSet().toList();
+    columns = columns.toList()..remove(primaryKey);
 
     
+    pSelect?.start();
+    {
+      final tmp = entities;
+      entities = [];
+      for(final entity in tmp) {
+        final exist = isExistInStorage(-1, (e2) => comparison(entity, e2));
+        if(exist != null)
+          result.stored.add(exist);
+        else entities.add(entity);
+      }
+    }
+    pSelect?.stop();
+
+
     pInsert?.start();
-    
-    final include = columns.toList();
-    final values = entities.map((e) => e.toTable(requestType: ERequestType.insert, include: include).toList(columns)).toList();
-    final rawResult = await raw.insertAll(
-      columns.map((e) => e.name).toList(),
-      values,
-      logger: logger,
-    );
-    result.transactions.add(rawResult);
+    if(entities.isNotEmpty) {
+      final values = entities.map((e) => e.toTable(
+          requestType: ERequestType.insert,
+          include: columns.toList(),
+        ).toList(columns),
+      ).toList();
 
-    final int lastId = rawResult.output;
+      final rawResult = await executor.insertAll(
+        columns.map((e) => e.name).toList(),
+        values,
+        logger: logger,
+      );
+      result.transactions.add(rawResult);
 
-    int id = lastId - (entities.length - 1);
-    for(int n = 0; n < entities.length; n++, id++) {
-      final entity = entities[n];
-      entity.id = id;
-      entity.setLoaded(true);
-      entity.setEdited(false);
-    } result.pushed.addAll(entities);
-    result.prepareList();
+      final int lastId = rawResult.output;
 
-    // for(final entity in entities) {
-    //   final rawResult = await raw.insert(
-    //     entity.toTable(type: ERequestType.insert).toMap(),
-    //     logger: logger,
-    //   );
-    //   result.transactions.add(rawResult);
-
-    //   final int id = rawResult.output;
-
-    //   if(id != 0) {
-    //     entity.params.primaryKey = id;
-    //     entity.setLoaded(true);
-    //     entity.setEdited(false);
-    //     result.pushed.add(entity);
-    //     continue;
-    //   } else result.notPushed.add(entity);
-    // }
+      int id = lastId - (entities.length - 1);
+      for(int n = 0; n < entities.length; n++, id++) {
+        final entity = entities[n];
+        entity.id = id;
+        entity.setLoaded(true);
+        entity.setEdited(false);
+      } result.pushed.addAll(entities);
+      result.prepareList();
+    }
     pInsert?.stop();
     return result;
   }
@@ -282,7 +301,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
   //TODO TYPIZING List<ColumnInfo>?
   
   @override
-  Future<TableLoadResult<TCUSTOM, ID>> loadCustomData<TCUSTOM, ID>({
+  Future<TableLoadResult<TCUSTOM>> loadCustomData<TCUSTOM>({
     int limit = 0,
     List<EntityColumnInfo>? columns,
     String? where,
@@ -295,88 +314,88 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     LoggerContext? logger,
   }) async {
     if(limit < 0)
-      throw(new Exception("limit < 0"));
+      throw(Exception("limit < 0"));
+      
     if(columns != null && !columns.contains(primaryKey))
-      throw(new Exception("columns must contain primaryKey"));
+      throw(Exception("columns must contain primaryKey"));
 
-    final result = new TableLoadResult<TCUSTOM, ID>();
+    final result = TableLoadResult<TCUSTOM>();
 
     pSelect?.start();
+    {
+      final rawResult = await executor.query(
+        columns: columns?.map((e) => e.name).toList(),
+        where: where,
+        whereArgs: whereArgs,
+        limit: limit == 0 ? null : limit,
+        logger: logger,
+      );
+      result.transactions.add(rawResult);
 
-    final rawColumns = columns?.map((e) => e.name).toList();
-    final rawResult = await raw.query(
-      columns: rawColumns,
-      where: where,
-      whereArgs: whereArgs,
-      limit: limit == 0 ? null : limit,
-      logger: logger,
-    );
-    result.transactions.add(rawResult);
+      for(final row in rawResult.output) {
+        final int id = row[primaryKey.name]! as int;
+        var entity = isExistInStorage(id);
+        if(entity != null) {
+          result.stored.add(entityConverter(entity));
+          continue;
+        }
 
-    for(final row in rawResult.output) {
-      final int rowId = row[primaryKey.name]! as int;
-      var entity = isExistInStorage((e) => e.id != 0 && e.id == rowId);
-      if(entity != null) {
-        result.stored.add(entityConverter(entity));
-        continue;
-      }
+        entity = queueDelete.tryFirstWhere((e) => e.id == id);
+        if(entity != null) {
+          continue;
+        }
 
-      entity = queueDelete.tryFirstWhere((e) => e.id == rowId);
-      if(entity != null) {
-        continue;
-      }
-
-      result.loaded.add(mapConverter(row));
-    } result.prepareList();
+        result.loaded.add(mapConverter(row));
+      } result.prepareList();
+    }
     pSelect?.stop();
     return result;
   }
   
-  @override
-  Future<TableLoadResult<T, ID>> load<ID>({
-    List<ID>? ids,
-    int limit = 0,
-    List<String>? columns,
+  // Future<TableLoadResult<T, ID>> load<ID>({
+  //   List<ID>? ids,
+  //   int limit = 0,
+  //   List<String>? columns,
 
-    required EntityColumnInfo columnId,
+  //   required EntityColumnInfo columnId,
 
-    required EntityByIdPredicate<T, ID> predicate,
-    required MapToEntityConverter<T> converter,
+  //   required EntityByIdPredicate<T, ID> predicate,
+  //   required MapToEntityConverter<T> converter,
 
-    Profiler? pSelect,
-    LoggerContext? logger,
-  }) async {
-    final TableLoadResult<T, ID> result;
-    if(ids == null) {
-      result = await loadByLimit<ID>(
-        limit: limit,
-        columns: columns,
+  //   Profiler? pSelect,
+  //   LoggerContext? logger,
+  // }) async {
+  //   final TableLoadResult<T, ID> result;
+  //   if(ids == null) {
+  //     result = await loadByLimit<ID>(
+  //       limit: limit,
+  //       columns: columns,
 
-        converter: converter,
+  //       converter: converter,
         
-        pSelect: pSelect,
-        logger: logger,
-      );
-    } else {
-      result = await loadList<ID>(
-        columns: columns,
+  //       pSelect: pSelect,
+  //       logger: logger,
+  //     );
+  //   } else {
+  //     result = await loadList<ID>(
+  //       columns: columns,
 
-        ids: ids,
-        columnId: columnId,
+  //       ids: ids,
+  //       columnId: columnId,
 
-        predicate: predicate,
-        converter: converter,
+  //       predicate: predicate,
+  //       converter: converter,
         
-        pSelect: pSelect,
-        logger: logger,
-      );
-    } return result;
-  }
+  //       pSelect: pSelect,
+  //       logger: logger,
+  //     );
+  //   } return result;
+  // }
 
   @override
-  Future<TableLoadResult<T, ID>> loadByLimit<ID>({
+  Future<TableLoadResult<T>> loadByLimit({
     int limit = 0,
-    List<String>? columns,
+    List<EntityColumnInfo>? columns,
     String? where,
     List<Object?>? whereArgs,
 
@@ -385,130 +404,136 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     LoggerContext? logger,
   }) async {
     if(limit < 0)
-      throw(new Exception("limit < 0"));
-
-    final result = new TableLoadResult<T, ID>();
-
-    pSelect?.start();
-
-    final rawResult = await raw.query(
-      columns: columns,
-      where: where,
-      whereArgs: whereArgs,
-      limit: limit == 0 ? null : limit,
-      logger: logger,
-    );
-    result.transactions.add(rawResult);
-
-    // final debugProfiler = new Profiler("parsing")..start();
-    for(final row in rawResult.output) {
-      final int rowId = row[primaryKey.name]! as int;
-      var entity = isExistInStorage((e) => e.id != 0 && e.id == rowId);
-      if(entity != null) {
-        result.stored.add(entity);
-        continue;
-      }
-
-      entity = queueDelete.tryFirstWhere((e) => e.id == rowId);
-      if(entity != null) {
-        continue;
-      }
-
-      entity = converter(row);
-      entity.setLoaded(true);
-      entity.setEdited(false);
-      result.loaded.add(entity);
-    } result.prepareList();
-    // debugProfiler.stop();
-    // debugger(when: debugProfiler.time(TimeUnits.MILLISECONDS) > 500);
-
-    pSelect?.stop();
-    return result;
-  }
-
-  @override
-  Future<TableLoadResult<T, ID>> loadList<ID>({
-    List<String>? columns,
-
-    required List<ID> ids,
-    required EntityColumnInfo columnId,
-
-    required EntityByIdPredicate<T, ID> predicate,
-    required MapToEntityConverter<T> converter,
-    Profiler? pSelect,
-    LoggerContext? logger,
-  }) async {
-
-    ids = ids.toSet().toList();
-
-    final result = new TableLoadResult<T, ID>();
-
-    pSelect?.start();
-    
-
-    final List<ID> toLoad = [];
-
-    for(final id in ids) {
-      var entity = isExistInStorage((e) => predicate(e, id));
-      if(entity != null) {
-        result.stored.add(entity);
-        continue;
-      } 
-
-      entity = queueDelete.tryFirstWhere((e) => predicate(e, id));
-      if(entity != null) {
-        continue;
-      }
+      throw(Exception("limit < 0"));
       
-      toLoad.add(id);
-    }
+    if(columns != null && !columns.contains(primaryKey))
+      throw(Exception("columns must contain primaryKey"));
 
-    if(toLoad.isNotEmpty) {
-      final rawResult = await raw.query(
-        columns: columns,
-        where: "$columnId IN (?)",
-        whereArgs: [
-          toLoad,
-        ],
+    final result = TableLoadResult<T>();
+
+    pSelect?.start();
+    {
+      final rawResult = await executor.query(
+        columns: columns?.map((e) => e.name).toList(),
+        where: where,
+        whereArgs: whereArgs,
+        limit: limit == 0 ? null : limit,
         logger: logger,
       );
       result.transactions.add(rawResult);
 
+      // final debugProfiler = Profiler("parsing")..start();
       for(final row in rawResult.output) {
-        final int rowId = row[primaryKey.name]! as int;
-        var entity = queueDelete.tryFirstWhere((e) => e.id == rowId);
+        final int id = row[primaryKey.name]! as int;
+        var entity = isExistInStorage(id);
+        if(entity != null) {
+          result.stored.add(entity);
+          continue;
+        }
+
+        entity = queueDelete.tryFirstWhere((e) => e.id == id);
         if(entity != null) {
           continue;
         }
-        
+
         entity = converter(row);
         entity.setLoaded(true);
         entity.setEdited(false);
         result.loaded.add(entity);
-      }
-    } result.prepareList();
-
-    if(result.entities.length < ids.length) {
-      result.notLoaded.addAll(ids.where((id) => result.entities.tryFirstWhere((e) => predicate(e,id)) == null));
-      // TODO TEST
-      debugger(when: (pSelect?.elapsed.inMilliseconds ?? 0) > 5000);
+      } result.prepareList();
+      // debugProfiler.stop();
+      // debugger(when: debugProfiler.time(TimeUnits.MILLISECONDS) > 500);
     }
     pSelect?.stop();
     return result;
   }
 
   @override
-  Future<TableRemoveResult<T, ID>> removeList<ID>({
-    required List<ID> ids,
-    required String columnId,
+  Future<TableLoadResult<T>> loadByIds({
+    required List<int> ids,
 
-    required EntityByIdPredicate<T, ID> predicate,
+    List<String>? columns,
+
+    Profiler? pSelect,
+    LoggerContext? logger,
+  }) async {
+    final result = TableLoadResult<T>();
+
+
+    ids = ids.toSet().toList();
+    
+
+    pSelect?.start();
+    {
+      final List<int> toLoad = [];
+      final List<int> toRemoveIds = [];
+
+      for(final id in ids) {
+        var entity = isExistInStorage(id);
+        if(entity != null) {
+          result.stored.add(entity);
+          continue;
+        } 
+
+        entity = queueDelete.tryFirstWhere((e) => e.id == id);
+        if(entity != null) {
+          toRemoveIds.add(id);
+          continue;
+        }
+        
+        toLoad.add(id);
+      }
+
+      for(final id in toRemoveIds) {
+        ids.remove(id);
+      } result.notLoaded.addAll(toRemoveIds);
+
+      if(toLoad.isNotEmpty) {
+        final rawResult = await executor.query(
+          columns: columns,
+          where: "$primaryKey IN (?)",
+          whereArgs: [
+            toLoad,
+          ],
+          logger: logger,
+        );
+        result.transactions.add(rawResult);
+
+        for(final row in rawResult.output) {
+          final int rowId = row[primaryKey.name]! as int;
+          var entity = queueDelete.tryFirstWhere((e) => e.id == rowId);
+          if(entity != null) {
+            continue;
+          }
+          
+          entity = converter(row);
+          entity.setLoaded(true);
+          entity.setEdited(false);
+          result.loaded.add(entity);
+        }
+      } result.prepareList();
+
+      if(result.entities.length < ids.length) {
+        result.notLoaded.addAll(ids.where((id) => result.entities.tryFirstWhere((e) => e.id == id) == null));
+        // TODO TEST
+        debugger(when: (pSelect?.elapsed.inMilliseconds ?? 0) > 5000);
+      }
+    }
+    pSelect?.stop();
+    return result;
+  }
+
+  @override
+  Future<TableRemoveResult<T>> removeByIds({
+    required List<int> ids,
+
+    // required EntityByIdPredicate<T> predicate,
     Profiler? pDelete,
     LoggerContext? logger,
   }) async {
     ids = ids.toSet().toList();
 
-    final result = new TableRemoveResult<T, ID>();
+    final result = TableRemoveResult<T>();
 
     if(ids.isEmpty) {
       result.prepareList();
@@ -518,10 +543,10 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     pDelete?.start();
     
 
-    final List<ID> toDelete = [];
+    final List<int> toDelete = [];
 
     for(final id in ids) {
-      final entity = isExistInStorage((entity) => predicate(entity, id));
+      final entity = isExistInStorage(id);
       if(entity != null) {
         result.notRemoved.add(entity);
         continue;
@@ -529,8 +554,8 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     }
 
     if(toDelete.isNotEmpty) {
-      final rawResult = await raw.delete(
-        where: "$columnId IN (?)",
+      final rawResult = await executor.delete(
+        where: "$primaryKey IN (?)",
         whereArgs: [
           toDelete,
         ],
@@ -564,8 +589,8 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
   //     ModelConstructorFunction<T>? constructor,
   //     bool debug = false
   // }) async {
-  //   raw._throwIfDisposed();
-  //   List<Map<String, dynamic>> data = await raw.query(
+  //   executor._throwIfDisposed();
+  //   List<Map<String, dynamic>> data = await executor.query(
   //     where: where,
   //     whereArgs: whereArgs,
   //     columns: columns,
@@ -580,42 +605,51 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
 
 
   @override
-  T? isExistInStorage(EntityPredicate<T> predicate) {
-    // raw._throwIfDisposed();
+  T? isExistInStorage(int id, [EntityPredicate<T>? predicate]) {
+    // executor._throwIfDisposed();
     
-    final List<T> out = [];
-    bool b = isExistsInStorage(
-      predicate,
-      out,
-      singleMatch: true,
-    );
+    T? entity;
 
-    if(b)
-      return out.first;
-    return null;
-  }
-
-  @override
-  bool isExistsInStorage(
-    EntityPredicate<T> predicate,
-    List<T> out, {
-      bool singleMatch = false,
-  }) {
-    final Profiler profiler = new Profiler("$TAG; isExistsInStorage")..start();
-    // raw._throwIfDisposed();
-
-    for(var m2 in storage) {
-      if(predicate(m2)) {
-        out.add(m2);
-        if(singleMatch)
-          break;
+    
+    final profiler = Profiler("$TAG; isExistsInStorage")..start();
+    {
+      if(id == -1) {
+        for(final e in storage) {
+          if(predicate!(e)) {
+            entity = e;
+            break;
+          }
+        }
+      } else {
+        entity = _storage[id];
       }
-    } _debugProfiler(profiler..stop());
+    }
+    _debugProfiler(profiler..stop());
     
-    if(out.isNotEmpty) {
-      return true;
-    } return false;
+    return entity;
   }
+
+  // @override
+  // bool isExistsInStorage(
+  //   EntityPredicate<T> predicate,
+  //   List<T> out, {
+  //     bool singleMatch = false,
+  // }) {
+  //   final Profiler profiler = Profiler("$TAG; isExistsInStorage")..start();
+  //   // executor._throwIfDisposed();
+
+  //   for(var m2 in storage) {
+  //     if(predicate(m2)) {
+  //       out.add(m2);
+  //       if(singleMatch)
+  //         break;
+  //     }
+  //   } _debugProfiler(profiler..stop());
+    
+  //   if(out.isNotEmpty) {
+  //     return true;
+  //   } return false;
+  // }
   
 
 
@@ -624,8 +658,8 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
   //   int id, {
   //     List<String>? columns,
   // }) async {
-  //   _raw._throwIfDisposed();
-  //   List<Map<String, dynamic>> data = await _raw.query(
+  //   _executor._throwIfDisposed();
+  //   List<Map<String, dynamic>> data = await _executor.query(
   //     where: _table.primaryKey + " = ?",
   //     whereArgs: [id],
   //     columns: columns,
@@ -636,8 +670,8 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
   // }
 
   // Future<int> removeRowById(int id) async {
-  //   _raw._throwIfDisposed();
-  //   return await _raw.delete(
+  //   _executor._throwIfDisposed();
+  //   return await _executor.delete(
   //     where: _table.primaryKey + " = ?",
   //     whereArgs: [id],
   //   );
@@ -645,16 +679,17 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
 
 
   @override
-  Future<AdvancedTableSaveResult<T>> save({
+  @Deprecated("REVIEW")
+  Future<TableSaveResult<T>> save({
     Profiler? pInsert,
     Profiler? pUpdate,
     Profiler? pDelete,
     LoggerContext? logger,
   }) async {
-    final Profiler profiler = new Profiler("$TAG; save; working with entities")..start();
-    // raw._throwIfDisposed();
+    final Profiler profiler = Profiler("$TAG; save; working with entities")..start();
+    // executor._throwIfDisposed();
 
-    final result = new AdvancedTableSaveResult<T>();
+    final result = TableSaveResult<T>();
     
     final List<T> toInsert = queueInsert.toList();
     final List<T> toUpdate = queueUpdate.toList();
@@ -664,20 +699,13 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     queueUpdate.clear();
     queueDelete.clear();
 
-    for(final entity in storage) {
+    for(final entity in _storage.values) {
       if(!entity.getOptions().loaded)
         toInsert.add(entity);
       else if(entity.getOptions().loaded && entity.getOptions().edited)
         toUpdate.add(entity);
     }
 
-    // toInsert.addAll(queueInsert);
-    // toUpdate.addAll(queueUpdate);
-    // toDelete.addAll(queueDelete);
-    
-    // queueInsert.clear();
-    // queueUpdate.clear();
-    // queueDelete.clear();
     //   // for(int start = 0, end = 0; start < toInsert.length; start = end) {
     //   //   end += TentativeDatabase.MAX_INSERTS_PER_REQUEST;
 
@@ -700,7 +728,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     {
       final list = toInsert;
       int end = 0;
-      final columnInfos = table.columns.toList()..remove(table.primaryKey);
+      final columnInfos = this.columns.toList()..remove(primaryKey);
       final columns = columnInfos.map((e) => e.name).toList();
       final include = columnInfos.toList();
       while(list.isNotEmpty) {
@@ -709,7 +737,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
         list.removeRange(0, end);
 
         final values = entities.map((e) => e.toTable(requestType: ERequestType.insert, include: include).toList(columnInfos)).toList();
-        final rawResult = await raw.insertAll(
+        final rawResult = await executor.insertAll(
           columns,
           values,
           logger: logger,
@@ -740,7 +768,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     {
       final list = toUpdate;
       int end = 0;
-      final columnInfos = table.columns;
+      final columnInfos = this.columns;
       final columns = columnInfos.map((e) => e.name).toList();
       final include = columnInfos.toList();
       while(list.isNotEmpty) {
@@ -749,7 +777,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
         list.removeRange(0, end);
 
         final values = entities.map((e) => e.toTable(requestType: ERequestType.update, include: include).toList(columnInfos)).toList();
-        final rawResult = await raw.updateAll(
+        final rawResult = await executor.updateAll(
           columns,
           values,
           logger: logger,
@@ -788,7 +816,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     //   final include = columns.map((e) => e.param).toList();
     //   final primaryKeyIndex = columns.indexOf(table._primaryKey);
     //   for(final entity in entities) {
-    //     sqlBuilder.write("UPDATE ${raw.name} SET ");
+    //     sqlBuilder.write("UPDATE ${executor.name} SET ");
     //     final row = entity.toTable(type: ERequestType.update, include: include).toList(columns);
         
     //     for(int i = 0; i < columns.length; i++) {
@@ -804,7 +832,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     //     sqlBuilder.write("\n");
     //   }
     //   debugger();
-    //   final rawResult = await raw.rawUpdate(
+    //   final rawResult = await executor.rawUpdate(
     //     sqlBuilder.toString(),
     //     arguments: arguments,
     //     logger: logger,
@@ -824,7 +852,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
     // for(final entity in toUpdate) {
     //   final map = entity.toTable(type: ERequestType.update).toMap();
 
-    //   final rawResult = await raw.update(
+    //   final rawResult = await executor.update(
     //     map,
     //     where: "${table._primaryKey} = ?",
     //     whereArgs: [
@@ -856,9 +884,9 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
 
         list.removeRange(0, end);
 
-        final ids = entities.map((e) => e.toTable(requestType: ERequestType.delete).toList([table.primaryKey]).first).toList();
-        final rawResult = await raw.delete(
-          where: "${table.primaryKey} in (?)",
+        final ids = entities.map((e) => e.toTable(requestType: ERequestType.delete).toList([primaryKey]).first).toList();
+        final rawResult = await executor.delete(
+          where: "$primaryKey in (?)",
           whereArgs: [
             ids,
           ],
@@ -907,7 +935,7 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
 
 
 
-  // List<INeonCachedModel>      _cache            = new List();
+  // List<INeonCachedModel>      _cache            = List();
   // ///returns nothing
   // Future<bool> isExist(dynamic value, String column) async {
   //   List<Map<String, dynamic>> data = await _table.query(
@@ -959,10 +987,198 @@ class AdvancedTableImpl<T extends IEntity> extends AdvancedTable<T> {
   //   List<Map<String, dynamic>> cols = await _table.query(
   //     columns: (_columns.length == 0 ? null : _columns),
   //   );
-  //   _cache = new List();
+  //   _cache = List();
   //   cols.forEach((map) {
   //     _cache.add(_constructor.call(map));
   //   });
   // }
+}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+abstract class TableExecutorProxy {
+  
+  // Future<RawQueryRequestResult> query({
+  //     required RawQueryRequestResult result,
+  //     required List<String>? columns,
+  //     required LoggerContext? logger,
+  // });
+
+
+
+  // Future<RawInsertRequestResult> insert(
+  //   JsonObject values, {
+  //     required RawInsertRequestResult result,
+  //     String? nullColumnHack,
+  //     ConflictAlgorithm? conflictAlgorithm,
+  //     LoggerContext? logger,
+  // });
+
+  // /// Executes SQL INSERT INTO
+  // /// 
+  // /// Returns [PRIMARY_KEY] of last inserted
+  // Future<RawInsertRequestResult> insertAll(
+  //   List<String> columns,
+  //   List<List<Object?>> list, {
+  //     String? nullColumnHack,
+  //     ConflictAlgorithm? conflictAlgorithm,
+
+  //     DatabaseExecutor? database,
+  //     LoggerContext? logger,
+  // });
+
+
+  // /// Executes INSERT INTO ON CONFLICT() DO UPDATE SET
+  // /// 
+  // /// Returns number of changed rows
+  // Future<RawUpdateRequestResult> update(
+  //   Map<String, dynamic> values, {
+  //     String? where,
+  //     List<Object?>? whereArgs,
+  //     ConflictAlgorithm? conflictAlgorithm,
+  //     LoggerContext? logger,
+  // });
+
+  // /// Executes SQL UPDATE
+  // /// 
+  // /// Returns number of changed rows
+  // Future<RawInsertRequestResult> updateAll(
+  //   List<String> columns,
+  //   List<List<Object?>> list, {
+  //     String? nullColumnHack,
+  //     ConflictAlgorithm? conflictAlgorithm,
+
+  //     DatabaseExecutor? database,
+  //     LoggerContext? logger,
+  // });
+
+  // Future<RawUpdateRequestResult> rawUpdate(
+  //   String sql, {
+  //     List<Object?>? arguments,
+
+  //     DatabaseExecutor? database,
+  //     LoggerContext? logger,
+  // });
+  
+  // /// Executes SQL DELETE
+  // /// 
+  // /// Returns amount of deleted rows
+  // Future<RawDeleteRequestResult> delete({
+  //   String? where,
+  //   List<Object?>? whereArgs,
+  //   LoggerContext? logger,
+  // });
+
+  // /// Executes SQL DROP TABLE
+  // /// 
+  // /// Dropping table
+  // Future<RawDropTableRequestResult> drop();
+
+  // /// Executes SQL SELECT
+  // Future<List<String>> toStringTable({
+  //   int size = 999,
+  //   offset = 0,
+  // });
 }

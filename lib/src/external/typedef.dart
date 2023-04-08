@@ -7,6 +7,7 @@ typedef ModelConstructorFunction<T extends IEntity> = T Function(JsonObjectEx js
 
 
 typedef EntityPredicate<T extends IEntity> = bool Function(T entity);
+typedef EntityComparison<T extends IEntity> = bool Function(T e1, T e2);
 typedef EntityTest<T extends IEntity> = bool Function(T e1, T e2);
 typedef EntityByIdPredicate<T extends IEntity, ID> = bool Function(T entity, ID id);
 // typedef EntityByMapPredicate<T extends IEntity> = bool Function(T entity, JsonObject row);

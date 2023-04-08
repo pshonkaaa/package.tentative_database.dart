@@ -1,13 +1,10 @@
 import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
-import 'package:logger_ex/app/core/logger/Logger.dart';
-import 'package:logger_ex/library.dart';
 import 'package:tentative_database/src/internal/TentativeDatabaseImpl.dart';
 
 import 'DatabaseListeners.dart';
-import 'ITentativeTable.dart';
+import 'TentativeTable.dart';
 import 'SettingsTable/SettingsTable.dart';
-import 'TableBuilder.dart';
 
 abstract class TentativeDatabase {
   static const int MAX_INSERTS_PER_REQUEST = 1000;
@@ -52,23 +49,20 @@ abstract class TentativeDatabase {
   Future<void> execute(String sql);
 
 
-  Future<T> createOrLoadTable<T extends ITentativeTable<IEntity>>(
-    TableBuilder builder,
+  Future<T> createOrLoadTable<T extends TentativeTable<IEntity>>(
     T table, {
-      bool cacheSettings = true,
+      bool createSettingsTable = true,
   });
 
   Future<SettingsTable> createOrLoadSettingsTable(
-    String name, {
-      bool cacheValues = true,
-  });
+    String name
+  );
 
   Future<List<String>> getTables({
     bool excludeInternalTables = true,
   });
   
-  Future<T?> loadTable<T extends ITentativeTable<IEntity>>(
-    String name,
+  Future<T?> loadTable<T extends TentativeTable<IEntity>>(
     T table,
   );
 

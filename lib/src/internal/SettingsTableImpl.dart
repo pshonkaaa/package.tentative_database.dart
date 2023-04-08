@@ -3,12 +3,10 @@ import 'package:logger_ex/library.dart';
 import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
 
 class SettingsTableImpl extends SettingsTable {
-  final bool cacheValues;
   final Map<String, String?> cache = {};
 
   SettingsTableImpl({
     required String name,
-    required this.cacheValues,
     required DatabaseExecutor database,
   }) : super(
     name: name,
@@ -17,10 +15,16 @@ class SettingsTableImpl extends SettingsTable {
   );  
 
   @override
-  Future<String?> get(String name) async {
+  Future<String?> get(
+    String name, {
+      bool useCache = true,
+  }) async {
     // if(name == COLUMN_QID.name) throw(Exception("name should not be $COLUMN_QID"));
 
-    final rawResult = await raw.query(
+    if(useCache && cache.containsKey(name))
+      return cache[name];
+
+    final rawResult = await executor.query(
       where: "${SettingsTable.COLUMN_NAME} = ?",
       whereArgs: [name],
       columns: [SettingsTable.COLUMN_VALUE.name],
@@ -29,18 +33,33 @@ class SettingsTableImpl extends SettingsTable {
     final list = rawResult.output;
     if(list.isEmpty)
       return null;
-    return cache[name] = list[0][SettingsTable.COLUMN_VALUE.name] as String;
+    return cache[name] = list[0][SettingsTable.COLUMN_VALUE.name] as String?;
   }
   
   @override
-  Future<int> getInteger(String name, [int def = -1]) async {
-    final value = await get(name);
+  Future<int> getInteger(
+    String name, {
+      int def = -1,
+      bool useCache = true,
+  }) async {
+    final value = await get(
+      name,
+      useCache: useCache,
+    );
     return value == null ? def : (int.tryParse(value) ?? def);
   }
 
   @override
-  Future<bool> getBoolean(String name, [bool def = false]) async {
-    final value = await getInteger(name, -1);
+  Future<bool> getBoolean(
+    String name, {
+      bool def = false,
+      bool useCache = true,
+  }) async {
+    final value = await getInteger(
+      name,
+      def: -1,
+      useCache: useCache,
+    );
     return value == -1 ? def : (value == 0 ? false : true);
   }
 
@@ -58,7 +77,7 @@ class SettingsTableImpl extends SettingsTable {
     if(cache.containsKey(name)) {
       exists = true;
     } else {
-      final rawResult = await raw.query(
+      final rawResult = await executor.query(
         where: "${SettingsTable.COLUMN_NAME} = ?",
         whereArgs: [name],
         columns: [SettingsTable.COLUMN_VALUE.name],
@@ -68,7 +87,7 @@ class SettingsTableImpl extends SettingsTable {
     }
     int updated = 0;
     if(exists) {
-      final rawResult = await raw.update({
+      final rawResult = await executor.update({
           SettingsTable.COLUMN_VALUE.name: value,
         },
         where: "${SettingsTable.COLUMN_NAME} = ?",
@@ -80,7 +99,7 @@ class SettingsTableImpl extends SettingsTable {
         exists = false;
       }
     } if(!exists) {
-      final rawResult = await raw.insert({
+      final rawResult = await executor.insert({
           SettingsTable.COLUMN_NAME.name: name,
           SettingsTable.COLUMN_VALUE.name: value,
         },
@@ -116,7 +135,7 @@ class SettingsTableImpl extends SettingsTable {
   @override
   Future<Map<String, dynamic>> values() async {
     final values = <String, dynamic>{};
-    final rawResult = await raw.query(
+    final rawResult = await executor.query(
       columns: [SettingsTable.COLUMN_NAME.name, SettingsTable.COLUMN_VALUE.name],
     );
     for(final item in rawResult.output) {
