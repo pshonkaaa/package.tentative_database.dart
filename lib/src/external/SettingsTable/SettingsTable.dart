@@ -2,7 +2,6 @@ import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
 import 'package:json_ex/library.dart';
 import 'package:logger_ex/library.dart';
-import 'package:tentative_database/src/external/SqliteColumnTypes.dart';
 
 part 'SettingsTable.g.dart';
 

@@ -10,7 +10,6 @@ export 'src/external/SettingsTable/SettingsTable.dart';
 
 export 'src/external/DatabaseListeners.dart';
 export 'src/external/DebugChangedParam.dart';
-export 'src/external/SqliteColumnTypes.dart';
 export 'src/external/TentativeDatabase.dart';
 export 'src/external/TentativeTable.dart';
 export 'src/external/typedef.dart';
