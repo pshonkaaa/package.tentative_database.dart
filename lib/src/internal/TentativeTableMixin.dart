@@ -23,11 +23,12 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
 
   final List<TableExecutorProxy> _proxies = [];
   final Map<int, T> _storage = Map();
+  final List<T> queueToInsertAndToStorage = [];
 
 
 
   @override
-  Iterable<T> get storage => _storage.values;
+  Iterable<T> get storage => [..._storage.values, ...queueToInsertAndToStorage];
 
   @override
   void addProxy(TableExecutorProxy proxy) {
@@ -84,7 +85,9 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
     } 
     
     for(final entity in toAdd) {
-      _storage[entity.id] = entity;
+      if(entity.id == 0)
+        queueToInsertAndToStorage.add(entity);
+      else _storage[entity.id] = entity;
     }
 
     _debugProfiler(profiler..stop());
@@ -176,7 +179,13 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
     final List<T> toRemove = entities.where((e) => e.getOptions().stored).toList();
     
     for(final entity in toRemove) {
-      _storage.remove(e);
+      if(entity.getOptions().state != EEntityState.STORED)
+        continue;      
+      if(entity.id == 0) {
+        queueToInsertAndToStorage.remove(entity);
+        queueInsert.add(entity);
+      } else _storage.remove(e);
+
       entity.getOptions().state -= EEntityState.STORED;
     }
     _debugProfiler(profiler..stop());
@@ -691,6 +700,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
 
     final result = TableSaveResult<T>();
     
+    final List<T> toInsertAndToStorage = queueToInsertAndToStorage.toList();
     final List<T> toInsert = queueInsert.toList();
     final List<T> toUpdate = queueUpdate.toList();
     final List<T> toDelete = queueDelete.toList();
@@ -699,12 +709,16 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
     queueUpdate.clear();
     queueDelete.clear();
 
+
+    toInsert.addAll(toInsertAndToStorage);
+
     for(final entity in _storage.values) {
       if(!entity.getOptions().loaded)
         toInsert.add(entity);
       else if(entity.getOptions().loaded && entity.getOptions().edited)
         toUpdate.add(entity);
     }
+
 
     //   // for(int start = 0, end = 0; start < toInsert.length; start = end) {
     //   //   end += TentativeDatabase.MAX_INSERTS_PER_REQUEST;
@@ -757,6 +771,9 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
         }
         result.inserted.addAll(entities);
       }
+
+      queueToInsertAndToStorage.removeWhere((e) => toInsertAndToStorage.contains(e));
+      _storage.addEntries(toInsertAndToStorage.map((e) => MapEntry(e.id, e)));
     }
     pInsert?.stop();
     //--------------------------------------------------------------------------
