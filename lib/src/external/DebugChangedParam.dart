@@ -1,4 +1,3 @@
-
 class DebugChangedParam<ENUM> {
   final ENUM param;
   final Object? before;

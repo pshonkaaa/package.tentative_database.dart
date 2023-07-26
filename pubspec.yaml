@@ -1,12 +1,15 @@
 name: tentative_database
 description:
-version: 0.1.3
+version: 0.1.4
 publish_to: none
 
 environment:
   sdk: '>=2.17.6 <3.0.0'
 
-dependencies:    
+dependencies:
+  flutter:
+    sdk: flutter
+    
   true_core:
     git:
       url: https://github.com/TrueCollaboration/true_core.dart.git
