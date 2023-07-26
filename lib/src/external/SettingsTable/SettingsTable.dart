@@ -10,7 +10,7 @@ part 'SettingsTable.g.dart';
 abstract class SettingsTable extends ITableEx {
   static const COLUMN_ID                = EntityColumnInfo<int>("id", SqliteColumnTypes.integer, isPrimaryKey: true);
   static const COLUMN_NAME              = EntityColumnInfo<String>("name", SqliteColumnTypes.text);
-  static const COLUMN_VALUE             = EntityColumnInfo<String?>("value", SqliteColumnTypes.text);
+  static const COLUMN_VALUE             = EntityColumnInfo<String?>("value", SqliteColumnTypes.text, isNullable: true);
   
 
   static const COLUMNS = [
