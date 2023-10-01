@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:ientity/library.dart';
 import 'package:logger_ex/library.dart';
@@ -159,12 +159,12 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
 
     for(final entity in toRemove) {
       if(entity.getOptions().state == EEntityState.QUEUE_INSERT) {
-        queueInsert.remove(e);
+        queueInsert.remove(entity);
         entity.getOptions().state -= EEntityState.QUEUE_INSERT;
       }
 
       if(entity.getOptions().state == EEntityState.QUEUE_UPDATE) {
-        queueUpdate.remove(e);
+        queueUpdate.remove(entity);
         entity.getOptions().state -= EEntityState.QUEUE_UPDATE;
       }
     }
@@ -184,7 +184,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
       if(entity.id == 0) {
         queueToInsertAndToStorage.remove(entity);
         queueInsert.add(entity);
-      } else _storage.remove(e);
+      } else _storage.remove(entity.id);
 
       entity.getOptions().state -= EEntityState.STORED;
     }
@@ -746,7 +746,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
       final columns = columnInfos.map((e) => e.name).toList();
       final include = columnInfos.toList();
       while(list.isNotEmpty) {
-        final entities = list.getRange(0, end = min(list.length, TentativeDatabase.MAX_INSERTS_PER_REQUEST)).toList();
+        final entities = list.getRange(0, end = math.min(list.length, TentativeDatabase.MAX_INSERTS_PER_REQUEST)).toList();
 
         list.removeRange(0, end);
 
@@ -789,7 +789,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
       final columns = columnInfos.map((e) => e.name).toList();
       final include = columnInfos.toList();
       while(list.isNotEmpty) {
-        final entities = list.getRange(0, end = min(list.length, TentativeDatabase.MAX_UPDATES_PER_REQUEST)).toList();
+        final entities = list.getRange(0, end = math.min(list.length, TentativeDatabase.MAX_UPDATES_PER_REQUEST)).toList();
 
         list.removeRange(0, end);
 
@@ -897,7 +897,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
       final list = toDelete;
       int end = 0;
       while(list.isNotEmpty) {
-        final entities = list.getRange(0, end = min(list.length, TentativeDatabase.MAX_UPDATES_PER_REQUEST)).toList();
+        final entities = list.getRange(0, end = math.min(list.length, TentativeDatabase.MAX_UPDATES_PER_REQUEST)).toList();
 
         list.removeRange(0, end);
 
