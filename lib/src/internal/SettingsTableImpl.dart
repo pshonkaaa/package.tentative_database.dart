@@ -1,5 +1,5 @@
 import 'package:itable_ex/library.dart';
-import 'package:logger_ex/library.dart';
+import 'package:logger/logger.dart';
 import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
 
 class SettingsTableImpl extends SettingsTable {
@@ -67,7 +67,7 @@ class SettingsTableImpl extends SettingsTable {
   Future<bool> set(
     String name,
     dynamic value, {
-      LoggerContext? logger,
+      Logger? logger,
   }) async {
     // if(name == COLUMN_QID) {
     //   throw(Exception("name should not be $COLUMN_QID"));

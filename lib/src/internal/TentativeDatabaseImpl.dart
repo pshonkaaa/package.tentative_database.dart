@@ -31,7 +31,7 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   bool get connected => executor.connected;
   
   // @override
-  // LoggerContext logger = Logger.instance;
+  // Logger logger = Logger.instance;
 
   @override
   final DatabaseListeners listeners = DatabaseListeners();

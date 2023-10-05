@@ -35,7 +35,7 @@ abstract class TentativeDatabase {
 
   bool get connected;
 
-  // LoggerContext logger = Logger.instance;
+  // Logger logger = Logger.instance;
 
   DatabaseListeners get listeners;
 

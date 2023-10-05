@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:ientity/library.dart';
-import 'package:logger_ex/library.dart';
+import 'package:logger/logger.dart';
 import 'package:tentative_database/src/external/TentativeDatabase.dart';
 import 'package:tentative_database/src/external/results/TableLoadResult.dart';
 import 'package:tentative_database/src/external/results/TablePushResult.dart';
@@ -247,7 +247,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
 
     Profiler? pSelect,
     Profiler? pInsert,
-    LoggerContext? logger,
+    Logger? logger,
   }) async {
     final result = TablePushResult<T>();
 
@@ -320,7 +320,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
     required MapToCustomDataConverter<TCUSTOM> mapConverter,
 
     Profiler? pSelect,
-    LoggerContext? logger,
+    Logger? logger,
   }) async {
     if(limit < 0)
       throw(Exception("limit < 0"));
@@ -372,7 +372,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
   //   required MapToEntityConverter<T> converter,
 
   //   Profiler? pSelect,
-  //   LoggerContext? logger,
+  //   Logger? logger,
   // }) async {
   //   final TableLoadResult<T, ID> result;
   //   if(ids == null) {
@@ -410,7 +410,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
 
     required MapToEntityConverter<T> converter,
     Profiler? pSelect,
-    LoggerContext? logger,
+    Logger? logger,
   }) async {
     if(limit < 0)
       throw(Exception("limit < 0"));
@@ -464,7 +464,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
     List<String>? columns,
 
     Profiler? pSelect,
-    LoggerContext? logger,
+    Logger? logger,
   }) async {
     final result = TableLoadResult<T>();
 
@@ -538,7 +538,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
 
     // required EntityByIdPredicate<T> predicate,
     Profiler? pDelete,
-    LoggerContext? logger,
+    Logger? logger,
   }) async {
     ids = ids.toSet().toList();
 
@@ -693,7 +693,7 @@ mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
     Profiler? pInsert,
     Profiler? pUpdate,
     Profiler? pDelete,
-    LoggerContext? logger,
+    Logger? logger,
   }) async {
     final Profiler profiler = Profiler("$TAG; save; working with entities")..start();
     // executor._throwIfDisposed();
@@ -1120,7 +1120,7 @@ abstract class TableExecutorProxy {
   // Future<RawQueryRequestResult> query({
   //     required RawQueryRequestResult result,
   //     required List<String>? columns,
-  //     required LoggerContext? logger,
+  //     required Logger? logger,
   // });
 
 
@@ -1130,7 +1130,7 @@ abstract class TableExecutorProxy {
   //     required RawInsertRequestResult result,
   //     String? nullColumnHack,
   //     ConflictAlgorithm? conflictAlgorithm,
-  //     LoggerContext? logger,
+  //     Logger? logger,
   // });
 
   // /// Executes SQL INSERT INTO
@@ -1143,7 +1143,7 @@ abstract class TableExecutorProxy {
   //     ConflictAlgorithm? conflictAlgorithm,
 
   //     DatabaseExecutor? database,
-  //     LoggerContext? logger,
+  //     Logger? logger,
   // });
 
 
@@ -1155,7 +1155,7 @@ abstract class TableExecutorProxy {
   //     String? where,
   //     List<Object?>? whereArgs,
   //     ConflictAlgorithm? conflictAlgorithm,
-  //     LoggerContext? logger,
+  //     Logger? logger,
   // });
 
   // /// Executes SQL UPDATE
@@ -1168,7 +1168,7 @@ abstract class TableExecutorProxy {
   //     ConflictAlgorithm? conflictAlgorithm,
 
   //     DatabaseExecutor? database,
-  //     LoggerContext? logger,
+  //     Logger? logger,
   // });
 
   // Future<RawUpdateRequestResult> rawUpdate(
@@ -1176,7 +1176,7 @@ abstract class TableExecutorProxy {
   //     List<Object?>? arguments,
 
   //     DatabaseExecutor? database,
-  //     LoggerContext? logger,
+  //     Logger? logger,
   // });
   
   // /// Executes SQL DELETE
@@ -1185,7 +1185,7 @@ abstract class TableExecutorProxy {
   // Future<RawDeleteRequestResult> delete({
   //   String? where,
   //   List<Object?>? whereArgs,
-  //   LoggerContext? logger,
+  //   Logger? logger,
   // });
 
   // /// Executes SQL DROP TABLE

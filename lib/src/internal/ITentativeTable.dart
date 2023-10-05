@@ -1,6 +1,6 @@
 import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
-import 'package:logger_ex/library.dart';
+import 'package:logger/logger.dart';
 import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
 import 'package:tentative_database/src/external/results/TableLoadResult.dart';
 import 'package:tentative_database/src/external/results/TablePushResult.dart';
@@ -75,7 +75,7 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
     required EntityComparison<T> comparison,
 
     Profiler? pInsert,
-    LoggerContext? logger,
+    Logger? logger,
   });
   
   /// Load entities using [limit]
@@ -90,7 +90,7 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
     required MapToCustomDataConverter<TCUSTOM> mapConverter,
 
     Profiler? pSelect,
-    LoggerContext? logger,
+    Logger? logger,
   });
   
   // Future<TableLoadResult<T, ID>> load<ID>({
@@ -104,7 +104,7 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
   //   required MapToEntityConverter<T> converter,
 
   //   Profiler? pSelect,
-  //   LoggerContext? logger,
+  //   Logger? logger,
   // });
 
   /// Load entities using [limit]
@@ -116,7 +116,7 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
 
     required MapToEntityConverter<T> converter,
     Profiler? pSelect,
-    LoggerContext? logger,
+    Logger? logger,
   });
 
   /// Load entities by [ids]
@@ -126,7 +126,7 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
     List<String>? columns,
 
     Profiler? pSelect,
-    LoggerContext? logger,
+    Logger? logger,
   });
 
   /// Remove entities by [ids]
@@ -134,7 +134,7 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
     required List<int> ids,
 
     Profiler? pDelete,
-    LoggerContext? logger,
+    Logger? logger,
   });
 
 
@@ -204,7 +204,7 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
     Profiler? pInsert,
     Profiler? pUpdate,
     Profiler? pDelete,
-    LoggerContext? logger,
+    Logger? logger,
   });
 
   late final SettingsTable? _settings;

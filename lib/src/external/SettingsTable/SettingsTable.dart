@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
 import 'package:json_ex/library.dart';
-import 'package:logger_ex/library.dart';
+import 'package:logger/logger.dart';
 
 part 'SettingsTable.g.dart';
 
@@ -49,7 +49,7 @@ abstract class SettingsTable extends ITableEx {
   Future<bool> set(
     String name,
     dynamic value, {
-      LoggerContext? logger,
+      Logger? logger,
   });
 
   Future<bool> setInteger(

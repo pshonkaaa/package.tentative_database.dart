@@ -12,7 +12,7 @@
 //   Future<RawQueryRequestResult> query({
 //       required RawQueryRequestResult result,
 //       required List<String>? columns,
-//       required LoggerContext? logger,
+//       required Logger? logger,
 //   });
 
 
@@ -34,7 +34,7 @@
 //       required RawInsertRequestResult result,
 //       String? nullColumnHack,
 //       ConflictAlgorithm? conflictAlgorithm,
-//       LoggerContext? logger,
+//       Logger? logger,
 //   });
 
 //   /// Executes SQL INSERT INTO
@@ -47,7 +47,7 @@
 //       ConflictAlgorithm? conflictAlgorithm,
 
 //       DatabaseExecutor? database,
-//       LoggerContext? logger,
+//       Logger? logger,
 //   });
 
 
@@ -59,7 +59,7 @@
 //       String? where,
 //       List<Object?>? whereArgs,
 //       ConflictAlgorithm? conflictAlgorithm,
-//       LoggerContext? logger,
+//       Logger? logger,
 //   });
 
 //   /// Executes SQL UPDATE
@@ -72,7 +72,7 @@
 //       ConflictAlgorithm? conflictAlgorithm,
 
 //       DatabaseExecutor? database,
-//       LoggerContext? logger,
+//       Logger? logger,
 //   });
 
 //   Future<RawUpdateRequestResult> rawUpdate(
@@ -80,7 +80,7 @@
 //       List<Object?>? arguments,
 
 //       DatabaseExecutor? database,
-//       LoggerContext? logger,
+//       Logger? logger,
 //   });
   
 //   /// Executes SQL DELETE
@@ -89,7 +89,7 @@
 //   Future<RawDeleteRequestResult> delete({
 //     String? where,
 //     List<Object?>? whereArgs,
-//     LoggerContext? logger,
+//     Logger? logger,
 //   });
 
 //   /// Executes SQL DROP TABLE

@@ -1,6 +1,6 @@
 name: tentative_database
 description:
-version: 0.1.5
+version: 0.1.6
 publish_to: none
 
 environment:
@@ -10,18 +10,14 @@ dependencies:
   flutter:
     sdk: flutter
     
+  logger: any
+  
   true_core:
     git:
       url: https://github.com/TrueCollaboration/true_core.dart.git
   json_ex:
     git:
       url: https://github.com/TrueCollaboration/json_ex.dart.git
-  logger_ex_common:
-    git:
-      url: https://github.com/TrueCollaboration/logger_ex_common.dart.git
-  logger_ex:
-    git:
-      url: https://github.com/TrueCollaboration/logger_ex.dart.git
 
   ientity:
     git:
