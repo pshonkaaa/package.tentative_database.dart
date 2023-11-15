@@ -35,7 +35,3 @@ dev_dependencies:
   ientity_generator:
     git:
       url: https://github.com/TrueCollaboration/ientity_generator.dart.git
-
-dependency_overrides:
-  ientity_generator:
-    path: /Users/pshonka/_dev/projects/dart/packages/package.ientity_generator.dart
