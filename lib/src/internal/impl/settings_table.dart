@@ -1,6 +1,6 @@
 import 'package:itable_ex/library.dart';
 import 'package:logger/logger.dart';
-import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
+import 'package:tentative_database/library.dart';
 
 class SettingsTableImpl extends SettingsTable {
   final Map<String, String?> cache = {};

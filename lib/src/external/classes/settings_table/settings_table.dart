@@ -1,13 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
 import 'package:json_ex/library.dart';
 import 'package:logger/logger.dart';
 
-part 'SettingsTable.g.dart';
+part 'settings_table.g.dart';
 
-@AnTable(entityName: "QSettingEntity")
-abstract class SettingsTable extends ITableEx {
+@TableAnnotation(entityName: "QSettingEntity")
+abstract class SettingsTable extends BaseTableEx {
   static const COLUMN_ID                = EntityColumnInfo<int>("id", SqliteColumnTypes.integer, isPrimaryKey: true);
   static const COLUMN_NAME              = EntityColumnInfo<String>("name", SqliteColumnTypes.text);
   static const COLUMN_VALUE             = EntityColumnInfo<String?>("value", SqliteColumnTypes.text, isNullable: true);

@@ -1,10 +1,7 @@
 import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
-import 'package:tentative_database/src/internal/TentativeDatabaseImpl.dart';
-
-import 'DatabaseListeners.dart';
-import 'TentativeTable.dart';
-import 'SettingsTable/SettingsTable.dart';
+import 'package:tentative_database/library.dart';
+import 'package:tentative_database/src/internal/impl/tentative_database.dart';
 
 abstract class TentativeDatabase {
   static const int MAX_INSERTS_PER_REQUEST = 1000;
@@ -30,10 +27,9 @@ abstract class TentativeDatabase {
     onDowngrade: onDowngrade,
   );
 
+  bool get connected;
 
   DatabaseExecutor get executor;
-
-  bool get connected;
 
   // Logger logger = Logger.instance;
 
@@ -49,7 +45,7 @@ abstract class TentativeDatabase {
   Future<void> execute(String sql);
 
 
-  Future<T> createOrLoadTable<T extends TentativeTable<IEntity>>(
+  Future<T> createOrLoadTable<T extends TentativeTable>(
     T table, {
       bool createSettingsTable = true,
   });
@@ -62,7 +58,7 @@ abstract class TentativeDatabase {
     bool excludeInternalTables = true,
   });
   
-  Future<T?> loadTable<T extends TentativeTable<IEntity>>(
+  Future<T?> loadTable<T extends TentativeTable>(
     T table,
   );
 
@@ -70,7 +66,7 @@ abstract class TentativeDatabase {
     String name,
   );
   
-  Future<void> dropTable<T extends IEntity>(
+  Future<void> dropTable(
     String name, {
       bool dropSettingsTable = true,
   });
@@ -83,15 +79,6 @@ abstract class TentativeDatabase {
 
   static String generateSettingsTableName(String parentTableName)
     => TentativeDatabaseImpl.generateSettingsTableName(parentTableName);
-
-
-
-
-
-
-
-
-
 
   static String listToSqlList(
     Iterable<Object> list,

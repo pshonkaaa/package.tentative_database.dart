@@ -1,8 +1,9 @@
 import 'package:ientity/library.dart';
 import 'package:json_ex/library.dart';
+import 'package:tentative_database/library.dart';
 
-@Deprecated("")
-typedef ModelConstructorFunction<T extends IEntity> = T Function(JsonObjectEx json);
+// @deprecated
+// typedef ModelConstructorFunction<T extends IEntity> = T Function(JsonObjectEx json);
 
 
 
@@ -17,10 +18,3 @@ typedef EntityToCustomDataConverter<T extends IEntity, TCUSTOM> = TCUSTOM Functi
 // typedef EntityExtractor<T, ID> = ID Function(T entity);
 
 typedef OnQueueModificationError = void Function(QueueModificationError error, StackTrace stackTrace);
-
-class QueueModificationError<T> extends Error {
-  final List<T> entities;
-  QueueModificationError({
-    required this.entities,
-  });
-}

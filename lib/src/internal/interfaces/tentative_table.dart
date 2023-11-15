@@ -1,16 +1,10 @@
 import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
 import 'package:logger/logger.dart';
-import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
-import 'package:tentative_database/src/external/results/TableLoadResult.dart';
-import 'package:tentative_database/src/external/results/TablePushResult.dart';
-import 'package:tentative_database/src/external/results/TableRemoveResult.dart';
-import 'package:tentative_database/src/external/results/TableSaveResult.dart';
-import 'package:tentative_database/src/external/typedef.dart';
-import 'package:tentative_database/src/internal/TentativeTableMixin.dart';
+import 'package:tentative_database/library.dart';
 import 'package:true_core/library.dart';
 
-abstract class ITentativeTable<T extends IEntity> extends ITableEx {
+abstract class ITentativeTable<T extends IEntity> extends BaseTableEx {
   final MapToEntityConverter<T> converter;
   ITentativeTable({
     required super.name,
@@ -18,12 +12,14 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
     required super.database,
     required this.converter,
   });
+  
+  SettingsTable get settings;
 
   Iterable<T> get storage;
 
-  void addProxy(TableExecutorProxy proxy);
+  // void addProxy(TableExecutorProxy proxy);
   
-  void removeProxy(TableExecutorProxy proxy);
+  // void removeProxy(TableExecutorProxy proxy);
 
   /// Removing identical entities from storage
   void optimizeStorage();
@@ -38,25 +34,25 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
   /// 
   /// throwing error if entities exists in SQL.REMOVE queue
   void addToInsertQueue(
-    List<T> entities,
-    [OnQueueModificationError? onError]
-  );
+    List<T> entities, [
+      OnQueueModificationError? onError,
+  ]);
 
   /// Adding entities to SQL.UPDATE queue
   /// 
   /// throwing error if entities exists in SQL.REMOVE queue
   void addToUpdateQueue(
-    List<T> entities,
-    [OnQueueModificationError? onError]
-  );
+    List<T> entities, [
+      OnQueueModificationError? onError,
+  ]);
 
   /// Adding entities to SQL.REMOVE queue, and removing from SQL.INSERT/SQL.UPDATE queue if exists
   /// 
   /// throwing error if entities exists in storage
   void addToRemoveQueue(
-    List<T> entities,
-    [OnQueueModificationError? onError]
-  );
+    List<T> entities, [
+      OnQueueModificationError? onError,
+  ]);
 
   /// Removing entities from storage
   void removeFromStorage(
@@ -206,6 +202,4 @@ abstract class ITentativeTable<T extends IEntity> extends ITableEx {
     Profiler? pDelete,
     Logger? logger,
   });
-
-  late final SettingsTable? _settings;
 }

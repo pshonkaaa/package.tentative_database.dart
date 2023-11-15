@@ -1,9 +1,9 @@
 
 import 'package:ientity/library.dart';
 
-import 'ITableRequestResult.dart';
+import '../../abstract/table_request_result.dart';
 
-class TableRemoveResult<T extends IEntity> extends ITableRequestResult<T> {
+class TableRemoveResult<T extends IEntity> extends TableRequestResult<T> {
   // final List<T> maybeRemoved = [];
   // final List<T> removed = [];
   final List<T> notRemoved = [];

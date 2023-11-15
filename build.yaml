@@ -1,0 +1,5 @@
+targets:
+  $default:
+    builders:
+      ientity_generator:
+        enabled: true

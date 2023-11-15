@@ -1,15 +1,18 @@
 library truecollaboration.true_core.tentative_database;
 
-export 'src/external/results/ITableRequestResult.dart';
-export 'src/external/results/TableLoadResult.dart';
-export 'src/external/results/TablePushResult.dart';
-export 'src/external/results/TableRemoveResult.dart';
-export 'src/external/results/TableSaveResult.dart';
+export 'src/external/abstract/table_request_result.dart';
 
-export 'src/external/SettingsTable/SettingsTable.dart';
+export 'src/external/classes/results/table_load.dart';
+export 'src/external/classes/results/table_push.dart';
+export 'src/external/classes/results/table_remove.dart';
+export 'src/external/classes/results/table_save.dart';
 
-export 'src/external/DatabaseListeners.dart';
-export 'src/external/DebugChangedParam.dart';
-export 'src/external/TentativeDatabase.dart';
-export 'src/external/TentativeTable.dart';
+export 'src/external/classes/settings_table/settings_table.dart';
+
+export 'src/external/classes/database_listeners.dart';
+export 'src/external/classes/debug_changed_param.dart';
+export 'src/external/classes/tentative_database.dart';
+export 'src/external/classes/tentative_table.dart';
+
+export 'src/external/errors.dart';
 export 'src/external/typedef.dart';

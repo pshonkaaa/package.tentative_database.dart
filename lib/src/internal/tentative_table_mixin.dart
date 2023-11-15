@@ -3,42 +3,45 @@ import 'dart:math' as math;
 
 import 'package:ientity/library.dart';
 import 'package:logger/logger.dart';
-import 'package:tentative_database/src/external/TentativeDatabase.dart';
-import 'package:tentative_database/src/external/results/TableLoadResult.dart';
-import 'package:tentative_database/src/external/results/TablePushResult.dart';
-import 'package:tentative_database/src/external/results/TableRemoveResult.dart';
-import 'package:tentative_database/src/external/results/TableSaveResult.dart';
-import 'package:tentative_database/src/external/typedef.dart';
+import 'package:tentative_database/library.dart';
 import 'package:true_core/library.dart';
 
-import 'ITentativeTable.dart';
+import 'interfaces/tentative_table.dart';
 
-mixin TentativeTableMixin<T extends IEntity> on ITentativeTable<T> {
-  static const TAG = "TentativeTableMixin";
+mixin TentativeTableMixin<T extends BaseEntity> on ITentativeTable<T> {
+  static final TAG = (TentativeTableMixin).toString();
+
+  void setSettingsTable(SettingsTable? table) {
+    _settings = table;
+  }
 
   final List<T> queueInsert = [];
   final List<T> queueUpdate = [];
   final List<T> queueDelete = [];
 
 
-  final List<TableExecutorProxy> _proxies = [];
+  // final List<TableExecutorProxy> _proxies = [];
+  SettingsTable? _settings;
   final Map<int, T> _storage = Map();
   final List<T> queueToInsertAndToStorage = [];
 
 
+  
+  @override
+  SettingsTable get settings => _settings!;
 
   @override
   Iterable<T> get storage => [..._storage.values, ...queueToInsertAndToStorage];
 
-  @override
-  void addProxy(TableExecutorProxy proxy) {
-    _proxies.add(proxy);
-  }
+  // @override
+  // void addProxy(TableExecutorProxy proxy) {
+  //   _proxies.add(proxy);
+  // }
 
-  @override
-  void removeProxy(TableExecutorProxy proxy) {
-    _proxies.remove(proxy);
-  }
+  // @override
+  // void removeProxy(TableExecutorProxy proxy) {
+  //   _proxies.remove(proxy);
+  // }
 
   @override
   Future<void> initState() async {

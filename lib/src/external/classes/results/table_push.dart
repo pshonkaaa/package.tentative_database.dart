@@ -1,9 +1,9 @@
 
 import 'package:ientity/library.dart';
 
-import 'ITableRequestResult.dart';
+import '../../abstract/table_request_result.dart';
 
-class TablePushResult<T extends IEntity> extends ITableRequestResult<T> {
+class TablePushResult<T extends IEntity> extends TableRequestResult<T> {
   final List<T> pushed = [];
   final List<T> stored = [];
   final List<T> notPushed = [];

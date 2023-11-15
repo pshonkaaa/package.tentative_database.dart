@@ -1,22 +1,10 @@
-import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
-import 'package:tentative_database/src/external/DatabaseListeners.dart';
-import 'package:tentative_database/src/external/TentativeTable.dart';
-import 'package:tentative_database/src/external/SettingsTable/SettingsTable.dart';
-import 'package:tentative_database/src/external/TentativeDatabase.dart';
+import 'package:tentative_database/library.dart';
 
-import 'SettingsTableImpl.dart';
+import 'settings_table.dart';
 
 class TentativeDatabaseImpl implements TentativeDatabase {
   static const String SUFFIX_SETTING_TABLE = r"$$settings";
-  
-  @override
-  final DatabaseMediator executor;
-  final OnConfigureFunction onConfigure;
-  final OnOpenFunction onOpen;
-  final OnCreateFunction onCreate;
-  final OnUpgradeFunction onUpgrade;
-  final OnDowngradeFunction onDowngrade;
 
   TentativeDatabaseImpl({
     required this.executor,
@@ -30,11 +18,24 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   @override
   bool get connected => executor.connected;
   
+  @override
+  final DatabaseMediator executor;
+  
   // @override
   // Logger logger = Logger.instance;
 
   @override
   final DatabaseListeners listeners = DatabaseListeners();
+
+  final OnConfigureFunction onConfigure;
+
+  final OnOpenFunction onOpen;
+
+  final OnCreateFunction onCreate;
+
+  final OnUpgradeFunction onUpgrade;
+  
+  final OnDowngradeFunction onDowngrade;
 
   @override
   Future<bool> connect({
@@ -72,7 +73,7 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   Future<void> execute(String sql) => executor.execute(sql);
 
   @override
-  Future<T> createOrLoadTable<T extends TentativeTable<IEntity>>(
+  Future<T> createOrLoadTable<T extends TentativeTable>(
     T table, {
       bool createSettingsTable = true,
   }) async {
@@ -113,7 +114,7 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   }
   
   @override
-  Future<T?> loadTable<T extends TentativeTable<IEntity>>(
+  Future<T?> loadTable<T extends TentativeTable>(
     T table, {
       bool createSettingsTable = true,
   }) async {
@@ -133,7 +134,7 @@ class TentativeDatabaseImpl implements TentativeDatabase {
     //     database: executor,
     //   );
     // }
-    TentativeTableHelper.setSettingsTable(table, settingsTable);
+    table.setSettingsTable(settingsTable);
     
     await table.initState();
     return table;
@@ -148,7 +149,7 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   }
   
   @override
-  Future<void> dropTable<T extends IEntity>(
+  Future<void> dropTable(
     String name, {
       bool dropSettingsTable = true,
   }) async {
