@@ -14,17 +14,17 @@ dependencies:
   
   true_core:
     git:
-      url: https://github.com/TrueCollaboration/true_core.dart.git
+      url: https://github.com/TrueCollaboration/package.true_core.dart.git
   json_ex:
     git:
-      url: https://github.com/TrueCollaboration/json_ex.dart.git
+      url: https://github.com/TrueCollaboration/package.json_ex.dart.git
 
   ientity:
     git:
-      url: https://github.com/TrueCollaboration/ientity.dart.git
+      url: https://github.com/TrueCollaboration/package.ientity.dart.git
   itable_ex:
     git:
-      url: https://github.com/TrueCollaboration/itable_ex.dart.git
+      url: https://github.com/TrueCollaboration/package.itable_ex.dart.git
 
 dev_dependencies:
   lints: ^2.0.0
@@ -34,4 +34,4 @@ dev_dependencies:
 
   ientity_generator:
     git:
-      url: https://github.com/TrueCollaboration/ientity_generator.dart.git
+      url: https://github.com/TrueCollaboration/package.ientity_generator.dart.git
