@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:ientity/library.dart';
 import 'package:logger/logger.dart';
 import 'package:tentative_database/library.dart';
-import 'package:true_core/library.dart';
+import 'package:foundation/library.dart';
 
 import 'interfaces/tentative_table.dart';
 

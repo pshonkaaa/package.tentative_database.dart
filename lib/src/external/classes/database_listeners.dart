@@ -1,6 +1,7 @@
-import 'package:true_core/library.dart';
+import 'package:foundation/library.dart';
 
 class DatabaseListeners {
-  final Notifier<void> onOpen = Notifier.empty();
-  final Notifier<void> onClose = Notifier.empty();
+  final Notifier<void> onConnect = Notifier(value: null);
+  final Notifier<void> onLoad = Notifier(value: null);
+  final Notifier<void> onClose = Notifier(value: null);
 }

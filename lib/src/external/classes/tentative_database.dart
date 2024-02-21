@@ -28,6 +28,8 @@ abstract class TentativeDatabase {
   );
 
   bool get connected;
+  
+  bool get loaded;
 
   DatabaseExecutor get executor;
 
@@ -36,7 +38,7 @@ abstract class TentativeDatabase {
   DatabaseListeners get listeners;
 
 
-  Future<bool> connect({
+  Future<void> connect({
     required IConnectionParams connectionParams,
   });
 

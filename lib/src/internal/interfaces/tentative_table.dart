@@ -2,7 +2,7 @@ import 'package:ientity/library.dart';
 import 'package:itable_ex/library.dart';
 import 'package:logger/logger.dart';
 import 'package:tentative_database/library.dart';
-import 'package:true_core/library.dart';
+import 'package:foundation/library.dart';
 
 abstract class ITentativeTable<T extends IEntity> extends BaseTableEx {
   final MapToEntityConverter<T> converter;

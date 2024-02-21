@@ -1,4 +1,4 @@
-library truecollaboration.true_core.tentative_database;
+library truecollaboration.foundation.tentative_database;
 
 export 'src/external/abstract/table_request_result.dart';
 

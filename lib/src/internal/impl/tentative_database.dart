@@ -17,6 +17,9 @@ class TentativeDatabaseImpl implements TentativeDatabase {
 
   @override
   bool get connected => executor.connected;
+
+  @override
+  bool loaded = false;
   
   @override
   final DatabaseMediator executor;
@@ -38,17 +41,17 @@ class TentativeDatabaseImpl implements TentativeDatabase {
   final OnDowngradeFunction onDowngrade;
 
   @override
-  Future<bool> connect({
+  Future<void> connect({
     required IConnectionParams connectionParams,
   }) async {
-    return await executor.connect(
+    await executor.connect(
       connectionParams: connectionParams,
       onConfigure: () async {
         await onConfigure();
       },
       onOpen: () async {
         await onOpen();
-        listeners.onOpen.notifyAll();
+        listeners.onConnect.notifyAll();
       },
       onCreate: (version) async {
         await onCreate(version);
@@ -60,12 +63,17 @@ class TentativeDatabaseImpl implements TentativeDatabase {
         await onDowngrade(oldVersion, newVersion);
       },
     );
+
+    loaded = true;
+    listeners.onLoad.notifyAll();
   }
 
   @override
-  Future<bool> close() async {
+  Future<void> close() async {
+    loaded = false;
+
     listeners.onClose.notifyAll();
-    return await executor.close();
+    await executor.close();
   }
 
 
