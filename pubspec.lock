@@ -214,15 +214,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  pshondation:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: cea8c35047443264471b09abd48422aa20ed9014
-      url: "https://github.com/pshonkaaa/package.pshondation.dart.git"
-    source: git
-    version: "0.1.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -276,7 +267,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "8ecb2a7930cb5c88c67319a6ca2c45ffdce2f699"
+      resolved-ref: "733bb0863cddf4c53624d62c662710268ba75b00"
       url: "https://github.com/pshonkaaa/package.ientity.dart.git"
     source: git
     version: "0.1.6"
@@ -285,7 +276,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "17ecc60691be8193683d78301ec9fa3b958f7651"
+      resolved-ref: "75c0a9efe8424b82ef6b40e296606872317ea227"
       url: "https://github.com/pshonkaaa/package.ientity_generator.dart.git"
     source: git
     version: "0.0.2"
@@ -310,7 +301,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: bd6ad2f44183854721e8e2047b7d70267b91f6dc
+      resolved-ref: "69d8613ee8158c680a848ed6fc1554edc5bf3026"
       url: "https://github.com/pshonkaaa/package.itable_ex.dart.git"
     source: git
     version: "0.1.5"
@@ -335,7 +326,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "7c3d089536269e5fd7bced899327276f4af6cae7"
+      resolved-ref: "276c832f14ddb124f1fc6dfacb80144fadccf508"
       url: "https://github.com/pshonkaaa/package.json_annotation_ex.dart.git"
     source: git
     version: "0.0.3"
@@ -444,6 +435,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.14.2"
+  pshondation:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: d10cf60a2e3adc12a949400e0662db5bddecc475
+      url: "https://github.com/pshonkaaa/package.pshondation.dart.git"
+    source: git
+    version: "0.1.0"
   pub_semver:
     dependency: transitive
     description:
